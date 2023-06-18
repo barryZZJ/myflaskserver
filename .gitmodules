@@ -1,0 +1,10 @@
+[submodule "wecom_responder/wecom_san"]
+	path = wecom_responder/utils/wecom_san
+	url = https://github.com/barryZZJ/wecomsan
+[submodule "wecom_responder/tvsubscribebot"]
+	path = wecom_responder/utils/tvsubscribebot
+	url = https://github.com/zhimengsub/TVSubscribeBot
+	branch = framework
+[submodule "wecom_responder/utils/wecomreceiver"]
+	path = wecom_responder/utils/wecomreceiver
+	url = https://github.com/barryZZJ/wecomreceiver
