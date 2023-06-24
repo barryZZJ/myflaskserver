@@ -1,7 +1,5 @@
 from pathlib import Path
-
 from loguru import logger
+from wecom_responder.utils.consts import LOG
 
-logfile = Path(__file__).parents[1].joinpath('responder.log')
-
-logger.add(str(logfile), rotation='1 day', retention='3 days')
+logger.add(str(LOG), rotation='1 day', retention='3 days')

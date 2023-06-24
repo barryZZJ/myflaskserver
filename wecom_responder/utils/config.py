@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
 
-from wecom_responder.utils import WecomReceiver
-
 
 def load_conf(dir: Path) -> dict:
     conf = dir.joinpath('config.json')
