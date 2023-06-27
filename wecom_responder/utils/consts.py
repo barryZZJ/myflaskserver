@@ -5,6 +5,7 @@ ROOT = Path(__file__).parents[1]
 ROUTES = ROOT / 'routes'
 
 DB_RESPONDER = ROOT / 'data' / 'cache_responder.db'
+DB_RESPONDER.parent.mkdir(exist_ok=True)
 
 DB_SUBBOT = ROOT / 'data' / 'cache_subbot.db'
 

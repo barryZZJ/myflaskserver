@@ -1,13 +1,19 @@
 from flask import Flask
 from wecom_responder.routes import bp_verify, bp_subscribe_chan
-from wecom_responder.routes.subscribe_chan.subscribe_chan import SubscribeChan
+from wecom_responder.routes.subscribe_chan.subscribe_chan import run_subbotproc
+# import logging
+#
+#
+# logging.basicConfig(
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     level=logging.DEBUG
+# )
 
 app = Flask(__name__)
 
 if __name__ == '__main__':
     # run sub processes
-    subscribe_chan = SubscribeChan()
-    subscribe_chan.run_subbotproc()
+    run_subbotproc()
 
     app.register_blueprint(bp_verify)
     app.register_blueprint(bp_subscribe_chan)
