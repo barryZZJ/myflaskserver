@@ -9,13 +9,15 @@ sys.path.extend([
 ])
 
 from wecom_responder.utils.tv_subscribe_bot.tvsubscribebot._textsubmitter import TextSubmitter
-from wecom_responder.utils.tv_subscribe_bot.tvsubscribebot._tvsubscribebot import TVSubscribeBot, Chat
+from wecom_responder.utils.tv_subscribe_bot.tvsubscribebot._tvsubscribebot import TVSubscribeBot
+from wecom_responder.utils.tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot import Chat, User
 from wecom_responder.utils.wecom_san.wecomsan.wecomsan import WecomSan
 from wecom_responder.utils.wecomreceiver.WecomReceiver import WecomReceiver, BaseMessage, TextMessage, ImageMessage, VideoMessage, LocationMessage, LinkMessage, MessageModel, MsgTypes
 
 __all__ = (
     'WecomSan',
     'Chat',
+    'User',
     'TVSubscribeBot',
     'TextSubmitter',
     'WecomReceiver',

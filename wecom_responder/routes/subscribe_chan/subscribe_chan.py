@@ -3,8 +3,8 @@ import atexit
 import multiprocessing
 from typing import Union, Literal
 
-from wecom_responder.utils import WecomSan, WecomReceiver, TextMessage, BaseMessage, TVSubscribeBot, TextSubmitter, Chat
-from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, PERSISTENCE, CACHE_SUBBOT
+from wecom_responder.utils import WecomSan, WecomReceiver, TextMessage, BaseMessage, TVSubscribeBot, TextSubmitter, Chat, User
+from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, PERSISTENCE_PKL, DB_SUBBOT
 from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import load_conf, curr_dir
 from wecom_responder.utils.manager import ChatManager, UserManager
@@ -28,7 +28,7 @@ bp = WecomReceiver(
 )
 listen = '127.0.0.1'
 port = 18888
-subbot = TVSubscribeBot(persistence_filepath=PERSISTENCE, dbfile=CACHE_SUBBOT)
+subbot = TVSubscribeBot(persistence_filepath=PERSISTENCE_PKL, dbfile_cache=DB_SUBBOT)
 submitter = TextSubmitter(port=port)
 wecombot = WecomSan(**conf['bot'])
 
@@ -55,7 +55,7 @@ def on_text(message: BaseMessage):
 
 
 @subbot.register_callback
-async def send_handled_result(result: str, chat: Chat):
+async def send_handled_result(result: str, chat: Chat, user: User):
     if not result:
         return
     print('sender touids:', touids)
