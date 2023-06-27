@@ -21,7 +21,6 @@ loguru==0.7.0
 MarkupSafe==2.1.3
 packaging==23.1
 pluggy==1.2.0
-ptbcontrib @ git+https://github.com/python-telegram-bot/ptbcontrib.git@51d3abef7c7a63e4f8b40bbe55508bdb1f110188
 pycryptodome==3.18.0
 pydantic==1.10.9
 pymongo==4.4.0
