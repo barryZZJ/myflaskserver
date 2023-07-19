@@ -2,13 +2,13 @@ import asyncio
 import atexit
 import multiprocessing
 from typing import Union, Literal
+from wecomsan import WecomSan
 
-from wecom_responder.utils import WecomSan, WecomReceiver, TextMessage, BaseMessage, TVSubscribeBot, TextSubmitter, Chat, User
+from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TVSubscribeBot, TextSubmitter, Chat, User
 from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, PERSISTENCE_PKL, DB_SUBBOT
 from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import load_conf, curr_dir
 from wecom_responder.utils.manager import ChatManager, UserManager
-from wecom_responder.utils.misc import split_text
 
 
 TO_UID = Union[str, Literal['@all']]
@@ -45,11 +45,11 @@ def on_text(message: BaseMessage):
         touids[chat] = message.fromUserName
         print('receiver touids:', touids)
         if not submitter.submit_text(
-                text=message.content,
-                date=message.createTime,
-                chat=chat,
-                from_user=user,
-                message_id=message.msgId
+            text=message.content,
+            date=message.createTime,
+            chat=chat,
+            from_user=user,
+            message_id=message.msgId
         ):
             wecombot.send('后端发送Update失败！', message.fromUserName)
 
@@ -61,9 +61,7 @@ async def send_handled_result(result: str, chat: Chat, user: User):
     print('sender touids:', touids)
     touid = touids.get(chat, '@all')
     logger.info('Respond with:\n' + result + '\nsend to: ' + touid)
-
-    for chunk in split_text(result, MAX_RESPONSE_BYTES):
-        wecombot.send(chunk, touid)
+    wecombot.send_autosplit(result, max_content_bytes=MAX_RESPONSE_BYTES)
 
 
 def listen_forever(listen: str, port: int):
@@ -73,7 +71,7 @@ def listen_forever(listen: str, port: int):
 
 
 try:
-    subbotproc = multiprocessing.Process(target=listen_forever, args=(listen, port))
+    subbotproc = multiprocessing.Process(target=listen_forever, args=(listen, port), name='subbotproc')
 except Exception as e:
     print(f"Error creating subbot process: {e}")
 
@@ -91,3 +89,7 @@ atexit.register(terminate_subbot)
 
 def run_subbotproc():
     subbotproc.start()
+
+# 报 An attempt has been made to start a new process before the
+#         current process has finished its bootstrapping phase.
+# 好像是Windows的问题，在Linux上就可以跑了，建议在linux上测试。

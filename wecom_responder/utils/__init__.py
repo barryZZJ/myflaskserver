@@ -11,11 +11,9 @@ sys.path.extend([
 from .tv_subscribe_bot.tvsubscribebot._tvsubscribebot import TVSubscribeBot
 from .tv_subscribe_bot.tvsubscribebot._textsubmitter import TextSubmitter
 from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot import Chat, User
-from .wecom_san.wecomsan.wecomsan import WecomSan
 from .wecomreceiver.WecomReceiver import WecomReceiver, BaseMessage, TextMessage, ImageMessage, VideoMessage, LocationMessage, LinkMessage, MessageModel, MsgTypes
 
 __all__ = (
-    'WecomSan',
     'Chat',
     'User',
     'TVSubscribeBot',

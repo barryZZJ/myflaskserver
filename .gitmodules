@@ -1,9 +1,6 @@
 [submodule "wecom_responder/utils/wecomreceiver"]
 	path = wecom_responder/utils/wecomreceiver
 	url = https://github.com/barryZZJ/wecomreceiver
-[submodule "wecom_responder/utils/wecom_san"]
-	path = wecom_responder/utils/wecom_san
-	url = https://github.com/barryZZJ/wecomsan
 [submodule "wecom_responder/utils/tvsubscribebot"]
 	path = wecom_responder/utils/tv_subscribe_bot
 	url = https://github.com/zhimengsub/TVSubscribeBot
