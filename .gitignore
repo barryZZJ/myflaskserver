@@ -161,3 +161,4 @@ cython_debug/
 config*.json
 !config_template*.json
 *.db
+*.bat
