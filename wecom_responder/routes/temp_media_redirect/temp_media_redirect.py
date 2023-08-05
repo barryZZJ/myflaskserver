@@ -39,7 +39,7 @@ def temp_media_redirect(media_id):
     logger.info('media_id: {}', media_id)
     logger.info('target url: {}', redirect_url)
     resp = requests.get(redirect_url, stream=True)
-    html_content = resp.content.decode('utf8')
-    logger.debug(html_content)
+    # html_content = resp.content.decode('utf8')
+    # logger.debug(html_content)
     mimetype = 'text/html; charset=utf-8'
     return Response(resp.content, mimetype=mimetype)
