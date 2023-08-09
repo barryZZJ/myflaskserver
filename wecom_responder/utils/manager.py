@@ -21,7 +21,7 @@ class UserManager:
         #         return new
         #     raise KeyError(f"User '{username}' already exists!")
 
-        user = User(UserManager._gen_userid(username), first_name=username, is_bot=False)
+        user = User(UserManager._gen_userid(username), first_name=username, is_bot=False, username=username)
         # self._cache.insert_user(user)
         return user
 

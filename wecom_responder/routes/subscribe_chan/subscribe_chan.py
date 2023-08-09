@@ -33,7 +33,7 @@ submitter = TextSubmitter(port=port)
 wecombot = WecomSan(**conf['bot'])
 
 manager = multiprocessing.Manager()
-touids: dict[Chat, str] = manager.dict()
+# touids: dict[Chat, str] = manager.dict()
 
 @bp.receive
 def on_text(message: BaseMessage):
@@ -42,8 +42,9 @@ def on_text(message: BaseMessage):
     chat = ChatManager.new_chat(user, message.agentID, 'subscribe_chan')
     if isinstance(message, TextMessage):
         logger.info(message)
-        touids[chat] = message.fromUserName
-        print('receiver touids:', touids)
+        print('receiver uid:', message.fromUserName)
+        # touids[chat] = message.fromUserName
+        # print('receiver touids:', touids)
         if not submitter.submit_text(
             text=message.content,
             date=message.createTime,
@@ -58,10 +59,14 @@ def on_text(message: BaseMessage):
 async def send_handled_result(result: str, chat: Chat, user: User):
     if not result:
         return
-    print('sender touids:', touids)
-    touid = touids.get(chat, '@all')
-    logger.info('Respond with:\n' + result + '\nsend to: ' + touid)
-    wecombot.send_autosplit(result, max_content_bytes=MAX_RESPONSE_BYTES)
+    logger.info('send to user: {}', user)
+    touid = user.username
+    # print('sender uid:', touid)
+    # touid = touids.get(chat, '@all')
+    logger.info('Respond with:{}\nsend to: {}', result, touid)
+    succ = wecombot.send_autosplit(result, touid, max_content_bytes=MAX_RESPONSE_BYTES)
+    if not succ:
+        logger.error('send_autosplit returned False!')
 
 
 def listen_forever(listen: str, port: int):
