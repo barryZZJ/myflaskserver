@@ -41,8 +41,6 @@ def on_text(message: BaseMessage):
     user = UserManager.new_user(message.fromUserName)
     chat = ChatManager.new_chat(user, message.agentID, 'subscribe_chan')
     if isinstance(message, TextMessage):
-        logger.info(message)
-        print('receiver uid:', message.fromUserName)
         # touids[chat] = message.fromUserName
         # print('receiver touids:', touids)
         if not submitter.submit_text(
@@ -59,11 +57,10 @@ def on_text(message: BaseMessage):
 async def send_handled_result(result: str, chat: Chat, user: User):
     if not result:
         return
-    logger.info('send to user: {}', user)
     touid = user.username
     # print('sender uid:', touid)
     # touid = touids.get(chat, '@all')
-    logger.info('Respond with:{}\nsend to: {}', result, touid)
+    logger.info('Send respond to {} with:\n{}', touid, result)
     succ = wecombot.send_autosplit(result, touid, max_content_bytes=MAX_RESPONSE_BYTES)
     if not succ:
         logger.error('send_autosplit returned False!')
