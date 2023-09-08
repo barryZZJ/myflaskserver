@@ -10,7 +10,7 @@ class UserManager:
     @staticmethod
     def _gen_userid(username: str) -> int:
         # derive id from hash value, in case the cache file corrupts
-        return md5int(username)
+        return md5int(username, digits=5)
 
     @staticmethod
     def new_user(username: str) -> User:
@@ -30,10 +30,10 @@ class ChatManager:
     @staticmethod
     def _gen_chatid(user: User, agentid: int) -> int:
         # derive id from hash value, in case the cache file corrupts
-        return md5int(''.join([user.first_name, str(agentid)]))
+        return md5int(''.join([user.first_name, str(agentid)]), digits=5)
 
     @staticmethod
-    def new_chat(user: User, agentid: int, chat_title: str = None) -> Chat:
+    def new_chat(user: User, agentid: int) -> Chat:
         # if found := self._cache.find_chat(user, agentid):
         #     if override:
         #         new = Chat(found.id, chat_title, user.first_name)
@@ -41,7 +41,7 @@ class ChatManager:
         #         return new
         #     raise KeyError(f"Chat '({user.first_name}, {agentid})' already exists!")
 
-        chat = Chat(ChatManager._gen_chatid(user, agentid), chat_title, user.first_name)
+        chat = Chat(ChatManager._gen_chatid(user, agentid), Chat.PRIVATE, username=user.first_name)
         # self._cache.insert_chat(user, chat, agentid)
         return chat
 
