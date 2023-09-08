@@ -39,7 +39,7 @@ manager = multiprocessing.Manager()
 def on_text(message: BaseMessage):
     logger.info('new message received: ' + str(message))
     user = UserManager.new_user(message.fromUserName)
-    chat = ChatManager.new_chat(user, message.agentID, 'subscribe_chan')
+    chat = ChatManager.new_chat(user, message.agentID)
     if isinstance(message, TextMessage):
         # touids[chat] = message.fromUserName
         # print('receiver touids:', touids)
