@@ -23,5 +23,6 @@ if __name__ == '__main__':
     app.register_blueprint(bp_subscribe_chan)
     app.register_blueprint(bp_temp_media_redirect)
     app.register_blueprint(bp_redirect)
+    app.register_blueprint(bp_root)
     # ? 不能是127.0.0.1，否则服务器的端口不开放
     app.run('0.0.0.0', port=23222)
