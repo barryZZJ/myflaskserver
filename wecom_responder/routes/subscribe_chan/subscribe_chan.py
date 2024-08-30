@@ -1,11 +1,11 @@
-import asyncio
-import atexit
-import multiprocessing
 from typing import Union, Literal
+
+from flask import Blueprint, request
+
 from wecomsan import WecomSan
 
-from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TVSubscribeBot, TextSubmitter, Chat, User
-from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, PERSISTENCE_PKL, DB_SUBBOT
+from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TextSubmitter
+from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, DUMBBOT_PORT, DUMBBOT_HOST
 from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import load_conf, curr_dir
 from wecom_responder.utils.manager import ChatManager, UserManager
@@ -17,7 +17,8 @@ CHATID = int
 conf = load_conf(curr_dir(__file__))
 
 # Create a Blueprint object for the main section
-bp = WecomReceiver(
+# receive messages from wecom user
+bp_recv = WecomReceiver(
     conf['token'],
     conf['encodingAESKey'],
     conf['bot']['cid'],
@@ -26,16 +27,16 @@ bp = WecomReceiver(
     logger=logger,
     url_prefix='/subscribe_chan',
 )
-listen = '127.0.0.1'
-port = 18888
-subbot = TVSubscribeBot(persistence_filepath=PERSISTENCE_PKL, dbfile_cache=DB_SUBBOT)
-submitter = TextSubmitter(port=port)
+
+submitter = TextSubmitter(listen=DUMBBOT_HOST, port=DUMBBOT_PORT)
 wecombot = WecomSan(**conf['bot'])
 
-manager = multiprocessing.Manager()
 # touids: dict[Chat, str] = manager.dict()
 
-@bp.receive
+# send messages to wecom user received from subbot
+bp_send = Blueprint('subscribe_chan_send', __name__, url_prefix='/subscribe_chan_send')
+
+@bp_recv.receive
 def on_text(message: BaseMessage):
     logger.info('new message received: ' + str(message))
     user = UserManager.new_user(message.fromUserName)
@@ -53,45 +54,15 @@ def on_text(message: BaseMessage):
             wecombot.send('后端发送Update失败！', message.fromUserName)
 
 
-@subbot.register_callback
-async def send_handled_result(result: str, chat: Chat, user: User):
+@bp_send.route('/<touid>', methods=['POST'])
+def send_handled_result_to_user(touid: str):
+    result = request.json.get('result', '')
     if not result:
         return
-    touid = user.username
     # print('sender uid:', touid)
     # touid = touids.get(chat, '@all')
     logger.info('Send respond to {} with:\n{}', touid, result)
     succ = wecombot.send_autosplit(result, touid, max_content_bytes=MAX_RESPONSE_BYTES)
     if not succ:
         logger.error('send_autosplit returned False!')
-
-
-def listen_forever(listen: str, port: int):
-    loop = asyncio.get_event_loop()
-    asyncio.set_event_loop(loop)
-    subbot.listen_forever(listen, port)
-
-
-try:
-    subbotproc = multiprocessing.Process(target=listen_forever, args=(listen, port), name='subbotproc')
-except Exception as e:
-    print(f"Error creating subbot process: {e}")
-
-def terminate_subbot():
-    print('proc pid:', subbotproc.pid)
-    try:
-        subbotproc.terminate()
-        print('subbot terminated!')
-    except Exception as e:
-        print('Terminate failed!', str(e))
-
-
-atexit.register(terminate_subbot)
-
-
-def run_subbotproc():
-    subbotproc.start()
-
-# 报 An attempt has been made to start a new process before the
-#         current process has finished its bootstrapping phase.
-# 好像是Windows的问题，在Linux上就可以跑了，建议在linux上测试。
+    return 'OK'

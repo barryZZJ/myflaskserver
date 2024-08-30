@@ -16,3 +16,9 @@ LOG = ROOT / 'logs' / 'responder.log'
 PERSISTENCE_PKL = ROOT / 'data' / 'bot_pkl'
 
 MAX_RESPONSE_BYTES = 2048
+
+DUMBBOT_HOST = '127.0.0.1'
+DUMBBOT_PORT = 18888
+
+APP_HOST = '0.0.0.0'
+APP_PORT = 23222
