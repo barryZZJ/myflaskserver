@@ -8,7 +8,7 @@ from wecomsan import WecomSan
 from wecom_responder.utils.config import load_conf, curr_dir
 
 # Create a Blueprint object for the main section
-bp = Blueprint('wecom_temp_media', __name__, url_prefix='/wecom_temp_media')
+bp_temp_media_redirect = Blueprint('wecom_temp_media', __name__, url_prefix='/wecom_temp_media')
 
 
 def modify_html(text: str, is_ua_wechat: bool) -> str:
@@ -21,7 +21,7 @@ def modify_html(text: str, is_ua_wechat: bool) -> str:
     return text
 
 
-@bp.route('/file/<media_id>')
+@bp_temp_media_redirect.route('/file/<media_id>')
 def temp_media_download(media_id):
     conf = load_conf(curr_dir(__file__))
     wecombot = WecomSan(**conf['bot'])
@@ -43,7 +43,7 @@ def temp_media_download(media_id):
     )
 
 
-@bp.route('/<media_id>')
+@bp_temp_media_redirect.route('/<media_id>')
 def temp_media_redirect(media_id):
     conf = load_conf(curr_dir(__file__))
     wecombot = WecomSan(**conf['bot'])

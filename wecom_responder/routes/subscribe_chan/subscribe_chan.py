@@ -18,7 +18,7 @@ conf = load_conf(curr_dir(__file__))
 
 # Create a Blueprint object for the main section
 # receive messages from wecom user
-bp_recv = WecomReceiver(
+bp_subscribe_chan_recv = WecomReceiver(
     conf['token'],
     conf['encodingAESKey'],
     conf['bot']['cid'],
@@ -34,9 +34,9 @@ wecombot = WecomSan(**conf['bot'])
 # touids: dict[Chat, str] = manager.dict()
 
 # send messages to wecom user received from subbot
-bp_send = Blueprint('subscribe_chan_send', __name__, url_prefix='/subscribe_chan_send')
+bp_subscribe_chan_send = Blueprint('subscribe_chan_send', __name__, url_prefix='/subscribe_chan_send')
 
-@bp_recv.receive
+@bp_subscribe_chan_recv.receive
 def on_text(message: BaseMessage):
     logger.info('new message received: ' + str(message))
     user = UserManager.new_user(message.fromUserName)
@@ -54,7 +54,7 @@ def on_text(message: BaseMessage):
             wecombot.send('后端发送Update失败！', message.fromUserName)
 
 
-@bp_send.route('/<touid>', methods=['POST'])
+@bp_subscribe_chan_send.route('/<touid>', methods=['POST'])
 def send_handled_result_to_user(touid: str):
     result = request.json.get('result', '')
     if not result:

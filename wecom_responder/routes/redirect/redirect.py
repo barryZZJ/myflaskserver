@@ -3,10 +3,10 @@ from flask import Blueprint, Response, request
 from loguru import logger
 
 # Create a Blueprint object for the main section
-bp = Blueprint('redirect', __name__, url_prefix='/redirect')
+bp_redirect = Blueprint('redirect', __name__, url_prefix='/redirect')
 
 
-@bp.route('/<path:url>')
+@bp_redirect.route('/<path:url>')
 def proxy_url(url):
     logger.info('fetching {}', url)
     try:
