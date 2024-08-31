@@ -1,1 +1,0 @@
-for pid in $(ps -ef | awk '/wecom_responder/ {print $2}'); do kill -9 $pid; done

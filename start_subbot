@@ -1,2 +1,1 @@
 nohup python3 -m wecom_responder.subbot >nohup_subbot.out &
-nohup python3 -m wecom_responder.app >nohup_responder.out &

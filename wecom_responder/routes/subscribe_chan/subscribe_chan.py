@@ -1,5 +1,3 @@
-from typing import Union, Literal
-
 from flask import Blueprint, request
 
 from wecomsan import WecomSan
@@ -10,9 +8,6 @@ from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import load_conf, curr_dir
 from wecom_responder.utils.manager import ChatManager, UserManager
 
-
-TO_UID = Union[str, Literal['@all']]
-CHATID = int
 
 conf = load_conf(curr_dir(__file__))
 
