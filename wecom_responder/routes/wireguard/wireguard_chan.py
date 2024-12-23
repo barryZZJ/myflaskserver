@@ -75,8 +75,13 @@ def on_text(message: BaseMessage):
         if cmd == 'start':
             try:
                 timeout = float(args[0]) if args else 10
-                thread = Thread(target=lambda: [time.sleep(timeout * 60), systemctl('stop', 'wgfrontend')])
+                thread = Thread(target=lambda: [
+                    time.sleep(timeout * 60),
+                    systemctl('stop', 'wgfrontend'),
+                    wecombot.send_autosplit('定时自动关闭wgfrontend成功！', message.fromUserName, max_content_bytes=MAX_RESPONSE_BYTES)
+                ])
                 thread.start()
+                result += f'\n{timeout * 60}秒后自动关闭'
             except Exception as e:
                 result += f'\n定时自动关闭wgfrontend失败：\n{e}'
         logger.info('Send respond to {} with:\n{}', message.fromUserName, result)

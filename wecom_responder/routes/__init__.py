@@ -4,4 +4,5 @@ from .temp_media_redirect.temp_media_redirect import bp_temp_media_redirect
 from .redirect.redirect import bp_redirect
 from .redirect.redirectlocal import bp_redirectlocal
 from .root.root import bp_root
-from .wireguard.wireguard_chan import bp_wireguard_chan, bp_wireguard
+# from .wireguard.wireguard_chan import bp_wireguard_chan, bp_wireguard
+from .webhook.webhook import bp_webhook

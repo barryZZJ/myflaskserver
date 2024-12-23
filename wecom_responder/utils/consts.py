@@ -13,6 +13,9 @@ DB_JOBSTORE = 'mongodb://127.0.0.1:27017/admin?retryWrites=true&w=majority'
 
 LOG = ROOT / 'logs' / 'responder.log'
 
+FILES = ROOT / 'files'
+PDFJS = FILES / 'pdf.js'
+
 PERSISTENCE_PKL = ROOT / 'data' / 'bot_pkl'
 
 MAX_RESPONSE_BYTES = 2048

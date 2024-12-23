@@ -1,0 +1,14 @@
+[Unit]
+# 服务名称，可自定义
+Description = my flask server
+After = network.target syslog.target
+Wants = network.target
+
+[Service]
+Type = simple
+# 启动frps的命令，需修改为您的frps的安装路径
+ExecStart = python3 -m wecom_responder.app
+WorkingDirectory = /root/myflaskserver
+
+[Install]
+WantedBy = multi-user.target
