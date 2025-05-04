@@ -1,21 +1,22 @@
 import requests
 
-from wecom_responder.utils.tv_subscribe_bot.tvsubscribebot import TVSubscribeBot
+from wecom_responder.utils._dailydrinknotifybot import DailyDrinkNotifyBot
 from tvsubscribebot.dumb_bot.dumbbot import Chat, User
-from wecom_responder.utils.consts import PERSISTENCE_PKL_BY_NAME, DB_SUBBOT, APP_HOST, APP_PORT, DUMBBOT_HOST, SUBBOT_PORT
+from wecom_responder.utils.consts import APP_HOST, APP_PORT, DUMBBOT_HOST, PERSISTENCE_PKL_BY_NAME, \
+    DRINKBOT_PORT
 
-subbot = TVSubscribeBot(persistence_filepath=PERSISTENCE_PKL_BY_NAME('subbot'), dbfile_cache=DB_SUBBOT)
+drinkbot = DailyDrinkNotifyBot(persistence_filepath=PERSISTENCE_PKL_BY_NAME('drinkbot'))
 
 def main(listen, port):
     print('starting subbot')
-    subbot.listen_forever(listen, port)
+    drinkbot.listen_forever(listen, port)
 
-@subbot.register_callback
+@drinkbot.register_callback
 async def send_handled_result_to_flask(result: str, chat: Chat, user: User):
     if not result:
         return
     touid = user.username
-    url = f'http://{APP_HOST}:{APP_PORT}/subscribe_chan_send/{touid}'
+    url = f'http://{APP_HOST}:{APP_PORT}/drink_chan_send/{touid}'
     params = {'result': result}
     try:
         response = requests.post(url, json=params)
@@ -25,4 +26,4 @@ async def send_handled_result_to_flask(result: str, chat: Chat, user: User):
         print(f"Redirect subbot result failed: {e}")
 
 if __name__ == '__main__':
-    main(DUMBBOT_HOST, SUBBOT_PORT)
+    main(DUMBBOT_HOST, DRINKBOT_PORT)

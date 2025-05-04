@@ -16,12 +16,13 @@ LOG = ROOT / 'logs' / 'responder.log'
 FILES = ROOT / 'files'
 PDFJS = FILES / 'pdf.js'
 
-PERSISTENCE_PKL = ROOT / 'data' / 'bot_pkl'
+PERSISTENCE_PKL_BY_NAME = lambda name: ROOT / 'data' / f'{name}_pkl'
 
 MAX_RESPONSE_BYTES = 2048
 
 DUMBBOT_HOST = '127.0.0.1'
-DUMBBOT_PORT = 18888
+SUBBOT_PORT = 18888
+DRINKBOT_PORT = 18889
 
 APP_HOST = '0.0.0.0'
 APP_PORT = 23222

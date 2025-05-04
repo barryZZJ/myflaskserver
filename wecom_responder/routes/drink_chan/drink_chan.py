@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from wecomsan import WecomSan
 
 from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TextSubmitter
-from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, SUBBOT_PORT, DUMBBOT_HOST
+from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, DUMBBOT_HOST, DRINKBOT_PORT
 from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import load_conf, curr_dir
 from wecom_responder.utils.manager import ChatManager, UserManager
@@ -13,25 +13,25 @@ conf = load_conf(curr_dir(__file__))
 
 # Create a Blueprint object for the main section
 # receive messages from wecom user
-bp_recv_from_subscribe_chan = WecomReceiver(
+bp_recv_from_drink_chan = WecomReceiver(
     conf['token'],
     conf['encodingAESKey'],
     conf['bot']['cid'],
-    'subcribe_chan',
+    'drink_chan',
     __name__,
     logger=logger,
-    url_prefix='/subscribe_chan_recv',
+    url_prefix='/drink_chan_recv',
 )
 
-submitter = TextSubmitter(listen=DUMBBOT_HOST, port=SUBBOT_PORT)
+submitter = TextSubmitter(listen=DUMBBOT_HOST, port=DRINKBOT_PORT)
 wecombot = WecomSan(**conf['bot'])
 
 # touids: dict[Chat, str] = manager.dict()
 
 # send messages to wecom user received from subbot
-bp_send_to_subscribe_chan = Blueprint('subscribe_chan_send', __name__, url_prefix='/subscribe_chan_send')
+bp_send_to_drink_chan = Blueprint('drink_chan_send', __name__, url_prefix='/drink_chan_send')
 
-@bp_recv_from_subscribe_chan.receive
+@bp_recv_from_drink_chan.receive
 def on_text(message: BaseMessage):
     logger.info('new message received: ' + str(message))
     user = UserManager.new_user(message.fromUserName)
@@ -49,7 +49,7 @@ def on_text(message: BaseMessage):
             wecombot.send('后端发送Update失败！', message.fromUserName)
 
 
-@bp_send_to_subscribe_chan.route('/<touid>', methods=['POST'])
+@bp_send_to_drink_chan.route('/<touid>', methods=['POST'])
 def send_handled_result_to_user(touid: str):
     result = request.json.get('result', '')
     if not result:

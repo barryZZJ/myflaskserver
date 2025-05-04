@@ -1,0 +1,13 @@
+[Unit]
+# 服务名称，可自定义
+Description = my flask server drinkbot
+After = network.target syslog.target
+Wants = network.target
+
+[Service]
+Type = simple
+ExecStart = python3 -m wecom_responder.drinkbot
+WorkingDirectory = /root/myflaskserver
+
+[Install]
+WantedBy = multi-user.target
