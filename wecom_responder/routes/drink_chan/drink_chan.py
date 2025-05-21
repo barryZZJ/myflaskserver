@@ -61,3 +61,16 @@ def send_handled_result_to_user(touid: str):
     if not succ:
         logger.error('send_autosplit returned False!')
     return 'OK'
+
+@bp_send_to_drink_chan.route('/image/<touid>', methods=['POST'])
+def send_handled_image_to_user(touid: str):
+    result = request.json.get('result', '')
+    if not result:
+        return
+    # print('sender uid:', touid)
+    # touid = touids.get(chat, '@all')
+    logger.info('Send image to {} with:\n{}', touid, result)
+    succ = wecombot.send_image(result, touid)
+    if not succ:
+        logger.error('send_image returned False!')
+    return 'OK'

@@ -1,6 +1,10 @@
 import inspect
 import traceback
+import matplotlib.pyplot as plt
 import datetime
+import calendar
+from io import BytesIO
+import base64
 from pathlib import Path
 from typing import Coroutine, TYPE_CHECKING, Union, TypeVar, Callable
 
@@ -11,7 +15,7 @@ from telegram.ext import Job
 
 from dumbbot.ptbcontrib.ptbcontrib.ptb_jobstores import PTBMongoDBJobStore
 from .consts import DB_JOBSTORE
-from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot import DumbApplication, DumbBot, Chat
+from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot import DumbApplication, DumbBot, Chat, User
 from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot import Update, StringArgConverter, ChainCommandHandler
 from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot.ext import ApplicationBuilder, PicklePersistence, PersistenceInput
 from .tv_subscribe_bot.tvsubscribebot.dumb_bot.dumbbot.ext import MessageHandler, ContextTypes, filters
@@ -57,7 +61,6 @@ class DailyDrinkNotifyBot:
         update_interval: float = PERSISTENCE_UPDATE_INTERVAL,
         dbfile_jobstore: str = DB_JOBSTORE,
     ):
-        # TODO 记录并查询统计结果
         self.persistence = PicklePersistence(
             persistence_filepath,
             store_data=PersistenceInput(callback_data=False),
@@ -107,7 +110,7 @@ class DailyDrinkNotifyBot:
         self.cmd_handlers_on = ChainCommandHandler('/on', self._cmd_on)
         self.cmd_handlers_off = ChainCommandHandler('/off', self._cmd_off)
         self.cmd_handlers_status = ChainCommandHandler('/status', self._cmd_status)
-        # self.cmd_handlers_report = ChainCommandHandler('/report', self._cmd_report) # TODO
+        self.cmd_handlers_report = ChainCommandHandler('/report', self._cmd_report)
         self.cmd_handlers_today = ChainCommandHandler('/today', self._cmd_today)
         self.cmd_handlers_help = ChainCommandHandler('/help', self._cmd_help)
 
@@ -119,7 +122,7 @@ class DailyDrinkNotifyBot:
         self._app.add_handler(self.cmd_handlers_on)
         self._app.add_handler(self.cmd_handlers_off)
         self._app.add_handler(self.cmd_handlers_status)
-        # self._app.add_handler(self.cmd_handlers_report)
+        self._app.add_handler(self.cmd_handlers_report)
         self._app.add_handler(self.cmd_handlers_today)
         self._app.add_handler(self.cmd_handlers_help)
         self._app.add_handler(self.cmd_handlers_drink)
@@ -152,7 +155,7 @@ class DailyDrinkNotifyBot:
             logger.error(traceback.format_exc())
 
     # public utils
-    def register_callback(self, func: Callable[[RESULT_TEXT, Chat], Coroutine]) -> Callable[[RESULT_TEXT, Chat], Coroutine]:
+    def register_callback(self, func: Callable[[RESULT_TEXT, Chat, User], Coroutine]) -> Callable[[RESULT_TEXT, Chat, User], Coroutine]:
         """Register coroutine callback for handling result text, can be used as a decorator."""
         return self._callbacks.register_callback(func)
 
@@ -216,6 +219,70 @@ class DailyDrinkNotifyBot:
         except Exception as e:
             logger.error("出错: {}", e)
             await self._callbacks.notify_handle_result(f"无法处理输入！\n{e}", update)
+
+    async def _cmd_report(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """/report [span=week/month] [last=0] - 查看统计结果（默认本周报）\nspan: week 周报 / month 月报\nlast: 倒数第几周/月"""
+        currfunc = inspect.currentframe().f_code.co_name
+        usage = self._usages[currfunc]
+        if not usage.check_arg_len(context.args):
+            await self._callbacks.notify_handle_result(usage.text, update)
+            return
+
+        try:
+            (span, last) = usage.parse_args(context.args)
+            logger.debug(f"report {span} {last}")
+            assert span in ['week', 'month'], "参数错误：span 只能是 week 或 month"
+            assert last >= 0, "参数错误：last 只能是正整数"
+
+            today: datetime.datetime = datetime.datetime.now()
+            daily_drank_dict = context.chat_data.get(KEY_DAILY_DRANK_DICT, {})
+            daily_goal = context.chat_data.get(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
+
+            if span == 'week':
+                plt.figure(figsize=(6, 4.5))
+                # 获取目标周的日期范围
+                start_of_week = today - datetime.timedelta(days=today.weekday() + 7 * last)
+                dates = [(start_of_week + datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
+                labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                title = f"{dates[0]} ~ {dates[-1]}"
+                values = [daily_drank_dict.get(date, 0) for date in dates]
+            elif span == 'month':
+                plt.figure(figsize=(8, 4.5))
+                # 获取目标月的日期范围
+                target_month = (today.month - last - 1) % 12 + 1
+                target_year = today.year + (today.month - last - 1) // 12
+                _, month_days = calendar.monthrange(target_year, target_month)
+                dates = [f"{target_year}-{target_month:02d}-{day:02d}" for day in range(1, month_days + 1)]
+                labels = [f"{day}" for day in range(1, month_days + 1)]  # 使用日期号作为标签
+                title = f"{target_year}-{target_month:02d}"
+                values = [daily_drank_dict.get(date, 0) for date in dates]
+
+            logger.debug(f"统计结果：{span} {last} {dates}\n{values}")
+
+            # 绘制柱状图
+            plt.bar(labels, values, width=0.7,  color='skyblue', label='history')
+            for i, v in enumerate(values):
+                plt.text(i, v, str(v), ha='center', va='bottom', fontsize=10)
+            # plt.axhline(y=daily_goal, color='r', linestyle='--', label='goal')
+            # plt.xlabel("date")
+            plt.ylabel("Drink amount (ml)")
+            plt.title(f"{title}")
+            plt.tight_layout()
+
+            # 保存图表为base64字符串
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            buffer.close()
+            plt.close()
+
+            # 返回图表
+            await self._callbacks.notify_handle_result(f"b64:{image_base64}", update)
+
+        except (AssertionError, ValueError, Exception) as e:
+            await self._callbacks.notify_handle_result(f"{e}\n{usage.text}", update)
+            return
 
     async def _cmd_today(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/today - 查看今日饮水情况"""
@@ -496,8 +563,9 @@ class DailyDrinkNotifyBot:
             ),
             '_cmd_today': StringArgConverter('/today - 查看今日饮水情况'),
             '_cmd_report': StringArgConverter(
-                '/report <days=7> - 查看统计结果（默认7天）【未实现】',
-                days=(int, 7)
+                '/report [span=week/month] [last=0] - 查看统计结果（默认本周报）\nspan: week 周报 / month 月报\nlast: 倒数第几周/月',
+                span=(str, 'week'),
+                last=(int, 0)
             ),
             '_cmd_mute': StringArgConverter('/mute - 关闭提醒一天'),
             '_cmd_unmute': StringArgConverter('/unmute - 恢复提醒'),

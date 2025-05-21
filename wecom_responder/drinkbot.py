@@ -16,7 +16,11 @@ async def send_handled_result_to_flask(result: str, chat: Chat, user: User):
     if not result:
         return
     touid = user.username
-    url = f'http://{APP_HOST}:{APP_PORT}/drink_chan_send/{touid}'
+    if result.startswith('b64:'):
+        result = result[4:]
+        url = f'http://{APP_HOST}:{APP_PORT}/drink_chan_send/image/{touid}'
+    else:
+        url = f'http://{APP_HOST}:{APP_PORT}/drink_chan_send/{touid}'
     params = {'result': result}
     try:
         response = requests.post(url, json=params)
