@@ -37,14 +37,16 @@ ALREADY_SUBBED_IDS = TypeVar('ALREADY_SUBBED_IDS', bound=list[int])
 KEY_DAILY_DRINK_GOAL = 'DAILY_DRINK_GOAL'
 KEY_DAILY_DRANK_DICT = 'DAILY_DRANK_DICT'
 KEY_HANDLER_CALLBACKS = 'NOTIFIER_CALLBACKS'
+KEY_IS_ON = 'IS_ON'
+KEY_PAUSE_UNTIL = 'PAUSE_UNTIL'
 
 AMOUNTPERSIP = 60  # 每口多少毫升
 DEFAULT_DAILY_DRINK_GOAL = 2000 # 默认每日饮水目标（毫升）
 DEFAULT_REMINDER_INTERVAL = 30  # 默认提醒间隔时间（分钟）
 
 # 饮水提醒相关常量
-JOB_REMINDER_PREFIX = 'drink_reminder_job'  # 饮水提醒任务名
-JOB_MUTE_PREFIX = 'drink_mute_job'
+JOB_REMINDER_PREFIX = 'drink_reminder_job_'  # 饮水提醒任务名
+job_reminder_name = lambda user_id: JOB_REMINDER_PREFIX + str(user_id)
 KEY_REMINDER_INTERVAL = 'REMINDER_INTERVAL'
 REMINDER_MORNING_START = datetime.time(9, 0)  # 早上开始时间
 REMINDER_MORNING_END = datetime.time(12, 0)  # 中午结束时间
@@ -212,9 +214,8 @@ class DailyDrinkNotifyBot:
 
             # 调整job
             user_id = update.effective_user.id
-            job_name = JOB_REMINDER_PREFIX + str(user_id)
             interval = context.chat_data.get(KEY_REMINDER_INTERVAL, DEFAULT_REMINDER_INTERVAL)
-            self._reschedule_job_interval(context, job_name, interval)
+            self._reschedule_job_interval(context, job_reminder_name(user_id), interval)
 
         except Exception as e:
             logger.error("出错: {}", e)
@@ -301,9 +302,11 @@ class DailyDrinkNotifyBot:
         """/on - 开启提醒"""
         chat_data = context.chat_data
         interval = chat_data.setdefault(KEY_REMINDER_INTERVAL, DEFAULT_REMINDER_INTERVAL)
+        chat_data[KEY_IS_ON] = True
+        chat_data[KEY_PAUSE_UNTIL] = None
         chat_id = update.effective_chat.id
         user_id = update.effective_user.id
-        job_name = JOB_REMINDER_PREFIX + str(user_id)
+        job_name = job_reminder_name(user_id)
 
         if not context.job_queue.get_jobs_by_name(job_name):
             logger.warning(f"Creating job {job_name}.")
@@ -331,95 +334,100 @@ class DailyDrinkNotifyBot:
         reply_text = f'提醒：开启\n' \
             f'提醒间隔：{interval}分钟\n' \
             f'提醒时间：\n{REMINDER_MORNING_START:%H:%M}~{REMINDER_MORNING_END:%H:%M}、{REMINDER_AFTERNOON_START:%H:%M}~{REMINDER_AFTERNOON_END:%H:%M}'
+        context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
         await self._callbacks.notify_handle_result(reply_text, update)
 
     async def _cmd_off(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/off - 关闭提醒"""
-        self._remove_reminders(update, context)
+        user_id = update.effective_user.id
+        chat_data = context.chat_data
+        chat_data[KEY_IS_ON] = False
+        chat_data[KEY_PAUSE_UNTIL] = None
+        for job in context.job_queue.get_jobs_by_name(job_reminder_name(user_id)):
+            job.schedule_removal()
+            logger.info(f"Removed reminder job {job.name}.")
+        context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
         await self._callbacks.notify_handle_result("已关闭提醒", update)
 
     async def _cmd_mute(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/mute - 关闭提醒一天"""
         user_id = update.effective_user.id
-        job_name = JOB_REMINDER_PREFIX + str(user_id)
-        if not context.job_queue.get_jobs_by_name(job_name):
+        chat_data = context.chat_data
+
+        if not chat_data.get(KEY_IS_ON, True):
             await self._callbacks.notify_handle_result("提醒已关闭，无法暂停", update)
+            logger.warning(f"User {user_id} tried to pause reminders but they are already off.")
             return
-        for job in context.job_queue.get_jobs_by_name(job_name):
-            if job.enabled:
-                job.enabled = False  # Temporarily disable this job
-                # start at tomorrow or 2 days later
-                now = datetime.datetime.now()  # 获取当前日期（不含时间）
-                today = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)  # 获取当前日期的时间戳
-                tomorrow = today + datetime.timedelta(days=1)  # 下一天
-                the_other_day = today + datetime.timedelta(days=2)  # 后天
 
-                # 是否达到饮水目标
-                today = self._key_today()
-                daily_goal = context.chat_data.get(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
-                daily_drank_dict = context.chat_data.get(KEY_DAILY_DRANK_DICT, {})
-                daily_drank = daily_drank_dict.get(today, 0)
+        # enable at tomorrow or 2 days later
+        now = datetime.datetime.now()  # 获取当前日期（不含时间）
+        today = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)  # 获取当前日期的时间戳
+        tomorrow = today + datetime.timedelta(days=1)  # 下一天
+        the_other_day = today + datetime.timedelta(days=2)  # 后天
 
-                if now.time() > REMINDER_AFTERNOON_END or daily_drank >= daily_goal:
-                    # 如果已经过了下午的提醒时间，或者已经达成饮水目标，则后天再提醒
-                    when = the_other_day
-                    await self._callbacks.notify_handle_result("今日提醒已结束，已暂停提醒至后天", update)
-                else:
-                    # 否则明天再提醒
-                    when = tomorrow
-                    await self._callbacks.notify_handle_result("已暂停提醒至明天", update)
+        # 是否达到饮水目标
+        today = self._key_today()
+        daily_goal = context.chat_data.get(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
+        daily_drank_dict = context.chat_data.get(KEY_DAILY_DRANK_DICT, {})
+        daily_drank = daily_drank_dict.get(today, 0)
 
-                context.job_queue.run_once(
-                    self._on_enable_job,
-                    when=when,
-                    data={
-                        'job': job
-                    },
-                    name=JOB_MUTE_PREFIX + str(user_id),
-                )
-                logger.info(f"Disabled job {job.name} until {when}.")
-            else:
-                logger.warning(f"Job {job.name} is already disabled.")
-                await self._callbacks.notify_handle_result("提醒已经暂停过了", update)
+        if now.time() > REMINDER_AFTERNOON_END or daily_drank >= daily_goal:
+            # 如果已经过了下午的提醒时间，或者已经达成饮水目标，则后天再提醒
+            when = the_other_day
+        else:
+            # 否则明天再提醒
+            when = tomorrow
+
+        if chat_data.get(KEY_PAUSE_UNTIL, when) >= when:
+            await self._callbacks.notify_handle_result("提醒已经暂停过了", update)
+            logger.warning(f"Already paused until {chat_data[KEY_PAUSE_UNTIL]} for user {user_id}.")
+        else:
+            logger.info(f"Pause until {when} for user {user_id}.")
+            chat_data[KEY_PAUSE_UNTIL] = when
+            context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
+            await self._callbacks.notify_handle_result(f"已暂停提醒至 {when.strftime('%Y-%m-%d')}", update)
 
     async def _cmd_unmute(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/unmute - 恢复提醒"""
         user_id = update.effective_user.id
-        job_mute_name = JOB_MUTE_PREFIX + str(user_id)
-        if not context.job_queue.get_jobs_by_name(job_mute_name):
-            logger.warning(f"Job {job_mute_name} is not found.")
+        chat_data = context.chat_data
+        if chat_data.get(KEY_PAUSE_UNTIL) is None:
             await self._callbacks.notify_handle_result("提醒没有暂停，无需恢复", update)
+            logger.warning(f"Reminders are not paused.")
             return
-        job_name = JOB_REMINDER_PREFIX + str(user_id)
-        for job_mute in context.job_queue.get_jobs_by_name(job_mute_name):
-            job_mute.schedule_removal()
-            logger.info(f"Removed mute job {job_mute_name}.")
-        if not context.job_queue.get_jobs_by_name(job_name):
-            logger.warning(f"Job {job_name} is not found.")
-            await self._callbacks.notify_handle_result("提醒已关闭，无法恢复", update)
-            return
-        for job in context.job_queue.get_jobs_by_name(job_name):
-            logger.info(f"Enabling job {job.name}.")
-            job.enabled = True
+        chat_data[KEY_PAUSE_UNTIL] = None
+        context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
+        logger.info(f"reminder for user {user_id} is restored.")
         await self._callbacks.notify_handle_result("已恢复提醒", update)
 
     async def _cmd_status(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """查看当前的提醒状态"""
         user_id = update.effective_user.id
-        job_name = JOB_REMINDER_PREFIX + str(user_id)
-        is_on = len(context.job_queue.get_jobs_by_name(job_name)) > 0
+        chat_data = context.chat_data
+        is_on = chat_data.get(KEY_IS_ON, True)
+        pause_until = chat_data.get(KEY_PAUSE_UNTIL, None)
+        now = datetime.datetime.now()  # 获取当前日期（不含时间）
+        today = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+        is_paused = pause_until is not None and pause_until > today
         interval = context.chat_data.get(KEY_REMINDER_INTERVAL, DEFAULT_REMINDER_INTERVAL)
         daily_goal = context.chat_data.get(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
         daily_drank = context.chat_data.get(KEY_DAILY_DRANK_DICT, {}).get(self._key_today(), 0)
+        next_t = None
+        for job in context.job_queue.get_jobs_by_name(job_reminder_name(user_id)):
+            logger.debug(f"reminder job {job.name} enabled={job.enabled}")
+            next_t = job.next_t.astimezone(pytz.timezone("Asia/Shanghai"))
+        logger.debug(f"status for user {user_id}: is_on={is_on}, is_paused={is_paused}, interval={interval}, daily_goal={daily_goal}, daily_drank={daily_drank}, next_t={next_t}")
 
         if is_on:
             reply_text = f'今日已喝 {daily_drank}/{daily_goal} 毫升\n' \
-                         f'提醒：{"开启" if is_on else "关闭"}\n' \
-                         f'提醒间隔时间：{interval}分钟\n' \
+                         f'提醒：{"暂停" if is_paused else "开启"}\n' + \
+                         (f'下次提醒时间：{next_t:%H:%M}\n' if not is_paused and next_t else '') + \
+                         f'提醒间隔：{interval}分钟\n' \
                          f'提醒时间：\n{REMINDER_MORNING_START:%H:%M}~{REMINDER_MORNING_END:%H:%M}、{REMINDER_AFTERNOON_START:%H:%M}~{REMINDER_AFTERNOON_END:%H:%M}'
         else:
             reply_text = f'今日已喝 {daily_drank}/{daily_goal} 毫升\n' \
-                         f'提醒：{"开启" if is_on else "关闭"}'
+                         f'提醒：关闭'
+
         await self._callbacks.notify_handle_result(reply_text, update)
 
     async def _cmd_set_target(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -483,9 +491,8 @@ class DailyDrinkNotifyBot:
         context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
         # 调整job
         user_id = update.effective_user.id
-        job_name = JOB_REMINDER_PREFIX + str(user_id)
 
-        if next_t := self._reschedule_job_interval(context, job_name, minutes):
+        if next_t := self._reschedule_job_interval(context, job_reminder_name(user_id), minutes):
             await self._callbacks.notify_handle_result(f"提醒间隔时间已设置为 {minutes} 分钟，下次提醒时间 {next_t:%H:%M}", update)
         else:
             await self._callbacks.notify_handle_result(f"提醒间隔时间已设置为 {minutes} 分钟", update)
@@ -500,20 +507,19 @@ class DailyDrinkNotifyBot:
             return next_t
         return None
 
-    def _remove_reminders(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user_id = update.effective_user.id
-        for job in context.job_queue.jobs():
-            if job.user_id == user_id:
-                job.schedule_removal()
-                logger.info(f"Removed job {job.name}.")
-        logger.debug(f'{context.job_queue.jobs()=}')
-
     @staticmethod
     async def _on_reminder(context: ContextTypes.DEFAULT_TYPE):
         """饮水提醒回调函数"""
-        logger.debug(f"in reminder job callback, {context.job.enabled=}")
+        # logger.debug(f"in reminder job callback, {context.job.enabled=}")
+        if not context.data.get(KEY_IS_ON, True):
+            logger.debug('job is off, skip reminder')
+            return
         now = datetime.datetime.now()
         logger.debug(f'{now=}')
+        pause_until = context.data.get(KEY_PAUSE_UNTIL, None)
+        if pause_until is not None and now < pause_until:
+            logger.debug(f'job is paused until {pause_until}, skip reminder')
+            return
         if REMINDER_MORNING_START <= now.time() <= REMINDER_MORNING_END or \
                 REMINDER_AFTERNOON_START <= now.time() <= REMINDER_AFTERNOON_END:
             logger.debug('in reminder time')
@@ -530,12 +536,6 @@ class DailyDrinkNotifyBot:
                 reply_text = f"该喝水了！今日已喝 {daily_drank}/{daily_goal}ml"
 
                 await context.job.data.get(KEY_HANDLER_CALLBACKS).notify_handle_result(reply_text, update)
-
-    async def _on_enable_job(self, context: ContextTypes.DEFAULT_TYPE):
-        job: Job = context.job.data.get('job')
-        if job and not job.removed:
-            logger.info(f"Enabling job {job.name}.")
-            job.enabled = True
 
     @staticmethod
     def _key_today():
