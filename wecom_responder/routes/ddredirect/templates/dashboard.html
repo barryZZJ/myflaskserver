@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DD Network Access Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon_dd.svg') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .network-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        .network-section {
+            text-align: center;
+        }
+        .network-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .network-copy-button {
+            display: block;
+            margin: 5px auto;
+            padding: 5px 10px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #666;
+            transition: all 0.2s;
+            text-decoration: none;
+            min-width: 120px;
+        }
+        .network-copy-button:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+        }
+        .network-copy-button.copied {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .service-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        .service-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .access-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .access-group {
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .ipv4-group {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .ipv6-group {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        .group-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .access-link {
+            display: block;
+            margin: 4px 0;
+            padding: 4px 8px;
+            background-color: white;
+            border-radius: 3px;
+            text-decoration: none;
+            color: #0066cc;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+        .access-link:hover {
+            background-color: #f0f8ff;
+            text-decoration: underline;
+        }
+        .copy-button {
+            display: block;
+            margin: 4px 0;
+            padding: 4px 8px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            color: #666;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .copy-button:hover {
+            background-color: #e9ecef;
+        }
+        .copy-button:active {
+            background-color: #d4edda;
+        }
+        .copy-button.copied {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #333; margin-top: 30px; }
+        .service-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .type-web {
+            background-color: #007bff;
+            color: white;
+        }
+        .type-service {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Toast 样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            body {
+                margin: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .network-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 10px;
+            }
+            .access-methods {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .service-item {
+                padding: 10px;
+            }
+            .toast {
+                right: 10px;
+                left: 10px;
+                width: auto;
+            }
+        }
+
+        /* 隐藏空的IPv4组 */
+        .access-group:empty {
+            display: none;
+        }
+
+        /* 展开/收起按钮样式 */
+        .toggle-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        .toggle-button:hover {
+            background-color: #0056b3;
+        }
+        .toggle-button:focus {
+            outline: none;
+        }
+        .toggle-icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DD Network Access Dashboard</h1>
+
+        <div class="network-info">
+            <div class="network-section">
+                <h3>IPv4 Network</h3>
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv4 }}', this)">
+                    {{ config.ips.ipv4 }}
+                </div>
+                {% if dns_ips.ipv4_txt %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv4_txt }}', this)">
+                    {{ dns_ips.ipv4_txt }} (TXT)
+                </div>
+                {% endif %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv4 }}', this)">
+                    {{ config.domains.ipv4 }}
+                </div>
+            </div>
+            <div class="network-section">
+                <h3>IPv6 ddasus</h3>
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv6_ddasus }}', this)">
+                    {{ config.ips.ipv6_ddasus }}
+                </div>
+                {% if dns_ips.ipv6_ddasus_txt %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv6_ddasus_txt }}', this)">
+                    {{ dns_ips.ipv6_ddasus_txt }} (TXT)
+                </div>
+                {% endif %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv6_ddasus }}', this)">
+                    {{ config.domains.ipv6_ddasus }}
+                </div>
+            </div>
+            <div class="network-section">
+                <h3>IPv6 dd</h3>
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv6_dd }}', this)">
+                    {{ config.ips.ipv6_dd }}
+                </div>
+                {% if dns_ips.ipv6_dd_txt %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv6_dd_txt }}', this)">
+                    {{ dns_ips.ipv6_dd_txt }} (TXT)
+                </div>
+                {% endif %}
+                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv6_dd }}', this)">
+                    {{ config.domains.ipv6_dd }}
+                </div>
+            </div>
+        </div>
+
+        <h2>服务列表</h2>
+
+        <!-- Web服务展开/收起按钮 -->
+        <div style="margin: 15px 0;">
+            <button id="toggleWebServices" class="toggle-button" onclick="toggleServiceType('web')">
+                <span id="webToggleIcon">▼</span> Web服务
+            </button>
+        </div>
+
+        <!-- Service服务展开/收起按钮 -->
+        <div style="margin: 15px 0;">
+            <button id="toggleServiceServices" class="toggle-button" onclick="toggleServiceType('service')">
+                <span id="serviceToggleIcon">▼</span> Service服务
+            </button>
+        </div>
+
+        {% for service_name, service_info in config.services.items() %}
+            <div class="service-item service-type-{{ service_info.type }}" data-service-type="{{ service_info.type }}">
+                <div class="service-name">
+                    <a href="./{{ service_info.subdomain }}" class="service-link">{{ service_name }}</a>
+                    <span class="service-type type-{{ service_info.type }}">{{ service_info.type.upper() }}</span>
+                </div>
+
+                <div class="access-methods">
+                    <!-- IPv4 访问方式 - 只有当有STUN端口配置时才显示 -->
+                    {% set is_web = config.stun_ports and config.stun_ports.ddasus_web and service_info.type == 'web' %}
+                    {% set has_stun_ports = config.stun_ports and config.stun_ports.get(service_name) %}
+                    {% if is_web or has_stun_ports %}
+                    <div class="access-group ipv4-group">
+                        <div class="group-title">IPv4 访问</div>
+
+                        <!-- IPv4 IP直连 (仅限特定服务) -->
+                        {% if service_info.ipv4_direct %}
+                            {% if service_info.type == 'web' %}
+                                {% set ipv4_port = config.stun_ports.ddasus_web %}
+                                <a href="{{ service_info.ipv4_scheme }}://{{ config.ips.ipv4 }}:{{ ipv4_port }}"
+                                   class="access-link" target="_blank">
+                                    {{ service_info.ipv4_scheme }}://{{ config.ips.ipv4 }}:{{ ipv4_port }}
+                                </a>
+                            {% else %}
+                                {% set ipv4_port = config.stun_ports.get(service_name) %}
+                                {% if ipv4_port %}
+                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv4 }}:{{ ipv4_port }}', this)">
+                                    {{ config.ips.ipv4 }}:{{ ipv4_port }}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- IPv4 域名访问 -->
+                        {% if service_info.type == 'web' %}
+                            <!-- Web服务域名访问 -->
+                            {% set path = service_info.path if service_info.path else '' %}
+                            {% if service_info.subdomain %}
+                                <a href="{{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}"
+                                   class="access-link" target="_blank">
+                                    {{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}
+                                </a>
+                            {% elif service_name == 'ddasus_web' %}
+                                <!-- info直接使用主域名 -->
+                                <a href="{{ service_info.ipv4_scheme }}://{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}"
+                                   class="access-link" target="_blank">
+                                    {{ service_info.ipv4_scheme }}://{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <!-- Service服务域名访问 -->
+                            {% if service_info.ipv4_direct %}
+                                {% set ipv4_port = config.stun_ports.get(service_name) %}
+                                {% if ipv4_port %}
+                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv4 }}:{{ ipv4_port }}', this)">
+                                    {{ config.domains.ipv4 }}:{{ ipv4_port }}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- IPv6 访问方式 -->
+                    {% if service_info.ipv6_host %}
+                        <div class="access-group ipv6-group">
+                            <div class="group-title">IPv6 访问 ({{ service_info.ipv6_host }})</div>
+
+                            <!-- IPv6 IP直连 -->
+                            {% if service_info.type == 'web' %}
+                                {% set path = service_info.path if service_info.path else '' %}
+                                <a href="{{ service_info.ipv6_scheme }}://[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}{{ path }}"
+                                   class="access-link" target="_blank">
+                                    {{ service_info.ipv6_scheme }}://[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}{{ path }}
+                                </a>
+                            {% else %}
+                                <div class="copy-button" onclick="copyToClipboardWithToast('[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}', this)">
+                                    [{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}
+                                </div>
+                            {% endif %}
+
+                            <!-- IPv6 域名访问 -->
+                            {% if service_info.type == 'web' %}
+                                <a href="{{ service_info.ipv6_scheme }}://{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}{{ path }}"
+                                   class="access-link" target="_blank">
+                                    {{ service_info.ipv6_scheme }}://{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}{{ path }}
+                                </a>
+                            {% else %}
+                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}', this)">
+                                    {{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+
+        <div style="margin-top: 30px; text-align: center; color: #666;">
+            <p><em>最后更新: {{ timestamp }}</em></p>
+            <p><small>点击灰色按钮可复制地址到剪贴板</small></p>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast">
+        复制成功！
+    </div>
+
+    <script>
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function copyToClipboardWithToast(text, element) {
+            navigator.clipboard.writeText(text).then(function() {
+                // 显示复制成功的视觉反馈
+                element.classList.add('copied');
+                const originalText = element.textContent;
+                element.textContent = '已复制!';
+
+                // 显示Toast提示
+                showToast(`已复制: ${text}`);
+
+                // 1秒后恢复原状态
+                setTimeout(function() {
+                    element.classList.remove('copied');
+                    element.textContent = originalText;
+                }, 1000);
+            }).catch(function(err) {
+                console.error('复制失败: ', err);
+                // 降级方案
+                fallbackCopyTextToClipboard(text, element);
+            });
+        }
+
+        function copyToClipboard(text, element) {
+            copyToClipboardWithToast(text, element);
+        }
+
+        function fallbackCopyTextToClipboard(text, element) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    element.classList.add('copied');
+                    const originalText = element.textContent;
+                    element.textContent = '已复制!';
+                    showToast(`已复制: ${text}`);
+                    setTimeout(function() {
+                        element.classList.remove('copied');
+                        element.textContent = originalText;
+                    }, 1000);
+                }
+            } catch (err) {
+                console.error('降级复制也失败了: ', err);
+                showToast('复制失败，请手动复制');
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // 展开/收起服务类型
+        function toggleServiceType(type) {
+            const services = document.querySelectorAll(`[data-service-type="${type}"]`);
+            let isVisible = false;
+
+            // 检查当前状态：如果有任何一个服务是显示的，就认为是展开状态
+            services.forEach(service => {
+                if (service.style.display !== 'none') {
+                    isVisible = true;
+                }
+            });
+
+            // 根据当前状态切换
+            services.forEach(service => {
+                if (isVisible) {
+                    service.style.display = 'none';  // 收起
+                } else {
+                    service.style.display = 'block'; // 展开
+                }
+            });
+
+            // 更新展开/收起按钮图标
+            const toggleIcon = document.getElementById(`${type}ToggleIcon`);
+            if (toggleIcon) {
+                toggleIcon.textContent = isVisible ? '▶' : '▼';
+            }
+        }
+
+        // 初始化展开/收起状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置初始图标状态 - 默认都是展开的
+            document.getElementById('webToggleIcon').textContent = '▼';
+            document.getElementById('serviceToggleIcon').textContent = '▼';
+        });
+    </script>
+</body>
+</html>

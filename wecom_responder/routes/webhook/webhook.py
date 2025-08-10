@@ -30,7 +30,7 @@ def redirect_rssitem_textcard(data, use_orig_link: bool = True) -> bool:
 
     conf = load_conf(curr_dir(__file__))
     # send textcard instead of text. upload temp file.
-    bot = wecomsan.WecomSan(**conf['bot'])
+    bot = wecomsan.WecomSan(**conf['bots']['mone_chan'])
     try:
         if use_orig_link:
             redirected_url = str(data['url'])
@@ -83,3 +83,28 @@ def freshrss():
     # else:
     redirect_rssitem_textcard(data)
     return 'OK', 200
+
+
+def send_msg(msg: dict) -> Response:
+    conf = load_conf(curr_dir(__file__))
+    bot = wecomsan.WecomSan(**conf['bots']['notify_chan'])
+    try:
+        text, touid = msg['text'], msg.get('touid', '@all')
+        resps = bot.send_autosplit2(text, touid=touid)
+        for resp in resps:
+            if resp.errcode != wecomsan.SUCCESS:
+                logger.error(f'Error sending message: {resp.errmsg}')
+                return make_response(f'Error sending message: {resp.errmsg}', 500)
+        return make_response('Message sent successfully', 200)
+    except requests.RequestException as e:
+        logger.error(f'RequestException while sending message: {e}')
+        return make_response('Failed to send message', 500)
+
+@bp_webhook.route('/msg', methods=['GET', 'POST'])
+def msg():
+    if request.method == 'GET':
+        return make_response('Hi', 200)
+    data = request.json
+    return send_msg(data)
+
+

@@ -12,10 +12,10 @@ from wecom_responder.utils.consts import APP_PORT, APP_HOST
 #     level=logging.DEBUG
 # )
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/')
 
 from wecom_responder.routes import bp_verify, bp_recv_from_subscribe_chan, bp_send_to_subscribe_chan, bp_temp_media_redirect, \
-bp_redirect, bp_redirectlocal, bp_root, bp_webhook, bp_send_to_drink_chan, bp_recv_from_drink_chan
+bp_redirect, bp_redirectlocal, bp_root, bp_webhook, bp_send_to_drink_chan, bp_recv_from_drink_chan, bp_ddredirect
 # from wecom_responder.routes import bp_wireguard, bp_wireguard_chan
 
 app.register_blueprint(bp_verify)
@@ -30,6 +30,7 @@ app.register_blueprint(bp_root)
 # app.register_blueprint(bp_wireguard)
 # app.register_blueprint(bp_wireguard_chan)
 app.register_blueprint(bp_webhook)
+app.register_blueprint(bp_ddredirect)
 
 if __name__ == '__main__':
     # ? 不能是127.0.0.1，否则服务器的端口不开放

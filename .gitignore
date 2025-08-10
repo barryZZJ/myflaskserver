@@ -164,5 +164,5 @@ config*.json
 *.pkl
 *.bat
 bot_pkl*
-wecom_responder/files/*
+wecom_responder/static/*
 wecom_responder/logs/*

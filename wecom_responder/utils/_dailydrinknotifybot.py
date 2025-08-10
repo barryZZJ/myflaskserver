@@ -85,15 +85,6 @@ class DailyDrinkNotifyBot:
             )
         )
         # define handlers
-        self.cmd_handlers_set = ChainCommandHandler(
-            '/set',
-            sub_command_handlers=[
-                ChainCommandHandler('target', self._cmd_set_target),
-                ChainCommandHandler('drank', self._cmd_set_drank),
-                ChainCommandHandler('interval', self._cmd_set_interval),
-            ]
-        )
-
         # 	1. 直接回复数字，记录今日喝水情况（已喝/目标），1位数则为口数，2位以上为毫升数。或判断“口”、“毫升”、“ml”字眼。一口50毫升
         # 	2. /help 指令提示
         # 	3. /set
@@ -107,27 +98,29 @@ class DailyDrinkNotifyBot:
         # 	8. /off 完全关闭提醒
         # 	9. /on 开启提醒。早9点~12点，14~晚9点，每半小时提醒。job
         # 	10. /status 提醒是否开启
-        self.cmd_handlers_mute = ChainCommandHandler('/mute', self._cmd_mute)
-        self.cmd_handlers_unmute = ChainCommandHandler('/unmute', self._cmd_unmute)
-        self.cmd_handlers_on = ChainCommandHandler('/on', self._cmd_on)
-        self.cmd_handlers_off = ChainCommandHandler('/off', self._cmd_off)
-        self.cmd_handlers_status = ChainCommandHandler('/status', self._cmd_status)
-        self.cmd_handlers_report = ChainCommandHandler('/report', self._cmd_report)
-        self.cmd_handlers_today = ChainCommandHandler('/today', self._cmd_today)
-        self.cmd_handlers_help = ChainCommandHandler('/help', self._cmd_help)
+        #   11. /remind - 手动触发提醒
+        self.cmd_handlers = [
+            ChainCommandHandler(
+                '/set',
+                sub_command_handlers=[
+                    ChainCommandHandler('target', self._cmd_set_target),
+                    ChainCommandHandler('drank', self._cmd_set_drank),
+                    ChainCommandHandler('interval', self._cmd_set_interval),
+                ]
+            ),
+            ChainCommandHandler('/mute', self._cmd_mute),
+            ChainCommandHandler('/unmute', self._cmd_unmute),
+            ChainCommandHandler('/on', self._cmd_on),
+            ChainCommandHandler('/off', self._cmd_off),
+            ChainCommandHandler('/status', self._cmd_status),
+            ChainCommandHandler('/report', self._cmd_report),
+            ChainCommandHandler('/today', self._cmd_today),
+            ChainCommandHandler('/help', self._cmd_help),
+            MessageHandler(filters.Regex('^\d+'), self._cmd_drink),
+            ChainCommandHandler('/remind', self._cmd_remind),
+        ]
 
-        self.cmd_handlers_drink = MessageHandler(filters.Regex('^\d+'), self._cmd_drink)
-
-        self._app.add_handler(self.cmd_handlers_set)
-        self._app.add_handler(self.cmd_handlers_mute)
-        self._app.add_handler(self.cmd_handlers_unmute)
-        self._app.add_handler(self.cmd_handlers_on)
-        self._app.add_handler(self.cmd_handlers_off)
-        self._app.add_handler(self.cmd_handlers_status)
-        self._app.add_handler(self.cmd_handlers_report)
-        self._app.add_handler(self.cmd_handlers_today)
-        self._app.add_handler(self.cmd_handlers_help)
-        self._app.add_handler(self.cmd_handlers_drink)
+        self._app.add_handlers(self.cmd_handlers)
 
         self._callbacks: HandlerCallbacks = HandlerCallbacks()
 
@@ -144,7 +137,6 @@ class DailyDrinkNotifyBot:
         user_data = dict(application.user_data)
         logger.debug(f'{chat_data=}')
         logger.debug(f'{user_data=}')
-        logger.debug(f'{application.job_queue.jobs()=}')  # 不包含未从数据库加载的job
         ...
 
     def listen_forever(self, listen: str = "127.0.0.1", port: int = 18889):
@@ -298,6 +290,12 @@ class DailyDrinkNotifyBot:
         else:
             await self._callbacks.notify_handle_result(f"今日已喝 {daily_drank}/{daily_goal} 毫升", update)
 
+    async def _cmd_remind(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """/remind - 手动触发提醒"""
+        for job in context.job_queue.get_jobs_by_name(job_reminder_name(update.effective_user.id)):
+            logger.info(f"Triggering reminder job {job.name} manually.")
+            await job.run(context.application)
+
     async def _cmd_on(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/on - 开启提醒"""
         chat_data = context.chat_data
@@ -329,9 +327,10 @@ class DailyDrinkNotifyBot:
 
         next_t = context.job_queue.get_jobs_by_name(job_name)[0].next_t.astimezone(pytz.timezone('Asia/Shanghai'))
         logger.debug(f'now: {datetime.datetime.now()}')
-        logger.info(f"{next_t=}")
+        logger.info(f"{next_t=:%Y-%m-%d %H:%M:%S}")
 
-        reply_text = f'提醒：开启\n' \
+        reply_text = f'提醒：开启\n' + \
+            (f'下次提醒时间：{next_t:%H:%M}\n' if next_t else '') + \
             f'提醒间隔：{interval}分钟\n' \
             f'提醒时间：\n{REMINDER_MORNING_START:%H:%M}~{REMINDER_MORNING_END:%H:%M}、{REMINDER_AFTERNOON_START:%H:%M}~{REMINDER_AFTERNOON_END:%H:%M}'
         context.application.mark_data_for_update_persistence(user_ids=update.effective_user.id)
@@ -351,6 +350,18 @@ class DailyDrinkNotifyBot:
 
     async def _cmd_mute(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """/mute - 关闭提醒一天"""
+        currfunc = inspect.currentframe().f_code.co_name
+        usage = self._usages[currfunc]
+        if not usage.check_arg_len(context.args):
+            await self._callbacks.notify_handle_result(usage.text, update)
+            return
+        try:
+            (days,) = usage.parse_args(context.args)
+            assert days > 0, "参数错误：days 必须大于0"
+        except (AssertionError, ValueError, TypeError, SyntaxError) as e:
+            await self._callbacks.notify_handle_result(f"{e}\n{usage.text}", update)
+            return
+
         user_id = update.effective_user.id
         chat_data = context.chat_data
 
@@ -362,8 +373,8 @@ class DailyDrinkNotifyBot:
         # enable at tomorrow or 2 days later
         now = datetime.datetime.now()  # 获取当前日期（不含时间）
         today = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)  # 获取当前日期的时间戳
-        tomorrow = today + datetime.timedelta(days=1)  # 下一天
-        the_other_day = today + datetime.timedelta(days=2)  # 后天
+        tomorrow = today + datetime.timedelta(days=days)  # 明天
+        the_other_day = today + datetime.timedelta(days=days+1)  # 后天
 
         # 是否达到饮水目标
         today = self._key_today()
@@ -378,7 +389,7 @@ class DailyDrinkNotifyBot:
             # 否则明天再提醒
             when = tomorrow
 
-        if chat_data.get(KEY_PAUSE_UNTIL, when) >= when:
+        if (chat_data.get(KEY_PAUSE_UNTIL, None) or when) > when:
             await self._callbacks.notify_handle_result("提醒已经暂停过了", update)
             logger.warning(f"Already paused until {chat_data[KEY_PAUSE_UNTIL]} for user {user_id}.")
         else:
@@ -391,7 +402,7 @@ class DailyDrinkNotifyBot:
         """/unmute - 恢复提醒"""
         user_id = update.effective_user.id
         chat_data = context.chat_data
-        if chat_data.get(KEY_PAUSE_UNTIL) is None:
+        if chat_data.get(KEY_PAUSE_UNTIL, None) is None:
             await self._callbacks.notify_handle_result("提醒没有暂停，无需恢复", update)
             logger.warning(f"Reminders are not paused.")
             return
@@ -412,11 +423,12 @@ class DailyDrinkNotifyBot:
         interval = context.chat_data.get(KEY_REMINDER_INTERVAL, DEFAULT_REMINDER_INTERVAL)
         daily_goal = context.chat_data.get(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
         daily_drank = context.chat_data.get(KEY_DAILY_DRANK_DICT, {}).get(self._key_today(), 0)
+        logger.debug(', '.join(job.name for job in context.application.job_queue.jobs() if job.user_id == user_id))
         next_t = None
         for job in context.job_queue.get_jobs_by_name(job_reminder_name(user_id)):
             logger.debug(f"reminder job {job.name} enabled={job.enabled}")
             next_t = job.next_t.astimezone(pytz.timezone("Asia/Shanghai"))
-        logger.debug(f"status for user {user_id}: is_on={is_on}, is_paused={is_paused}, interval={interval}, daily_goal={daily_goal}, daily_drank={daily_drank}, next_t={next_t}")
+        logger.debug(f"status for user {user_id}: is_on={is_on}, is_paused={is_paused}, interval={interval}, daily_goal={daily_goal}, daily_drank={daily_drank}, next_t={next_t:%Y-%m-%d %H:%M:%S}")
 
         if is_on:
             reply_text = f'今日已喝 {daily_drank}/{daily_goal} 毫升\n' \
@@ -503,7 +515,7 @@ class DailyDrinkNotifyBot:
         if context.job_queue.get_jobs_by_name(job_name):
             context.job_queue.scheduler.reschedule_job(job_id=job_name, trigger='interval', minutes=interval)
             next_t = context.job_queue.get_jobs_by_name(job_name)[0].next_t.astimezone(pytz.timezone('Asia/Shanghai'))
-            logger.info(f"Rescheduled job {job_name} with interval {interval} minutes, {next_t=}")
+            logger.info(f"Rescheduled job {job_name} with interval {interval} minutes, {next_t=:%Y-%m-%d %H:%M:%S}")
             return next_t
         return None
 
@@ -511,18 +523,19 @@ class DailyDrinkNotifyBot:
     async def _on_reminder(context: ContextTypes.DEFAULT_TYPE):
         """饮水提醒回调函数"""
         # logger.debug(f"in reminder job callback, {context.job.enabled=}")
-        if not context.data.get(KEY_IS_ON, True):
+        if not context.chat_data.get(KEY_IS_ON, True):
             logger.debug('job is off, skip reminder')
             return
         now = datetime.datetime.now()
         logger.debug(f'{now=}')
-        pause_until = context.data.get(KEY_PAUSE_UNTIL, None)
+        pause_until = context.chat_data.get(KEY_PAUSE_UNTIL, None)
         if pause_until is not None and now < pause_until:
             logger.debug(f'job is paused until {pause_until}, skip reminder')
             return
         if REMINDER_MORNING_START <= now.time() <= REMINDER_MORNING_END or \
                 REMINDER_AFTERNOON_START <= now.time() <= REMINDER_AFTERNOON_END:
             logger.debug('in reminder time')
+            next_t = context.job.next_t.astimezone(pytz.timezone("Asia/Shanghai"))
             # 获取当前日期
             today = DailyDrinkNotifyBot._key_today()
             daily_goal = context.chat_data.setdefault(KEY_DAILY_DRINK_GOAL, DEFAULT_DAILY_DRINK_GOAL)
@@ -533,8 +546,8 @@ class DailyDrinkNotifyBot:
             if daily_drank < daily_goal:
                 logger.info('reminder: havn\'t reach daily goal')
                 update: Update = context.job.data.get(JOBKEY_THIS_UPDATE)
-                reply_text = f"该喝水了！今日已喝 {daily_drank}/{daily_goal}ml"
-
+                reply_text = f"该喝水了！今日已喝 {daily_drank}/{daily_goal}ml\n" \
+                             f'下次提醒时间：{next_t:%H:%M}'
                 await context.job.data.get(KEY_HANDLER_CALLBACKS).notify_handle_result(reply_text, update)
 
     @staticmethod
@@ -563,13 +576,18 @@ class DailyDrinkNotifyBot:
             ),
             '_cmd_today': StringArgConverter('/today - 查看今日饮水情况'),
             '_cmd_report': StringArgConverter(
-                '/report [span=week/month] [last=0] - 查看统计结果（默认本周报）\nspan: week 周报 / month 月报\nlast: 倒数第几周/月',
+                '/report [span=week/month] [last=0] - 查看统计结果（默认本周报）\n    span: week 周报 / month 月报\n    last: 倒数第几周/月',
                 span=(str, 'week'),
                 last=(int, 0)
             ),
-            '_cmd_mute': StringArgConverter('/mute - 关闭提醒一天'),
+            '_cmd_mute': StringArgConverter(
+                '/mute [days=1] - 关闭提醒一天',
+                days=(int, 1)
+            ),
             '_cmd_unmute': StringArgConverter('/unmute - 恢复提醒'),
             '_cmd_off': StringArgConverter('/off - 完全关闭提醒'),
             '_cmd_on': StringArgConverter('/on - 开启提醒'),
+            '_cmd_status': StringArgConverter('/status - 查看当前的提醒状态'),
+            '_cmd_remind': StringArgConverter('/remind - 手动触发提醒'),
         }
 
