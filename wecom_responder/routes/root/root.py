@@ -1,6 +1,6 @@
 import socket
 
-from flask import Blueprint, request
+from flask import Blueprint, request, url_for, redirect
 
 # Create a Blueprint object for the main section
 bp_root = Blueprint('root', __name__)
@@ -11,6 +11,9 @@ def welcome():
 
 @bp_root.route('/')
 def root():
+    host = request.host
+    if host.startswith('getnspsharewan'):
+        return redirect(url_for('ddredirect.ipv4_redirect', service_name='nspsharewan'))
     sock = request.environ.get('werkzeug.socket')
     if sock:
         sock.shutdown(socket.SHUT_RDWR)

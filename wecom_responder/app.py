@@ -38,4 +38,4 @@ if __name__ == '__main__':
     if sys.argv[-1] == '--debug':
         app.run(APP_HOST, port=APP_PORT, debug=True)
     else:
-        app.run(APP_HOST, port=APP_PORT)
+        app.run(APP_HOST, port=APP_PORT, use_reloader=False)

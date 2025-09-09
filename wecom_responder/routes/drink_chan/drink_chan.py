@@ -56,7 +56,7 @@ def send_handled_result_to_user(touid: str):
         return
     # print('sender uid:', touid)
     # touid = touids.get(chat, '@all')
-    logger.info('Send respond to {} with:\n{}', touid, result)
+    # logger.info('Send respond to {} with:\n{}', touid, result)
     succ = wecombot.send_autosplit(result, touid, max_content_bytes=MAX_RESPONSE_BYTES)
     if not succ:
         logger.error('send_autosplit returned False!')
@@ -69,7 +69,7 @@ def send_handled_image_to_user(touid: str):
         return
     # print('sender uid:', touid)
     # touid = touids.get(chat, '@all')
-    logger.info('Send image to {} with:\n{}', touid, result)
+#     logger.info('Send image to {} with:\n{}', touid, result)
     succ = wecombot.send_image(result, touid)
     if not succ:
         logger.error('send_image returned False!')
