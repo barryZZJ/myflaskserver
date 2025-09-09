@@ -97,8 +97,9 @@ def index():
                           dns_ips=dns_ips,
                           timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
+@bp_ddredirect.route('/<service_name>/<path:req_path>')
 @bp_ddredirect.route('/<service_name>')
-def ipv4_redirect(service_name):
+def ipv4_redirect(service_name, req_path=''):
     """IPv4服务重定向 - 不需要认证"""
     config = load_config()
     if not config:
@@ -123,7 +124,8 @@ def ipv4_redirect(service_name):
 
     if service['type'] == 'web':
         path = service.get('path', '')
-        url = f"{service['ipv4_scheme']}://{service['subdomain']}.{domain}:{port}{path}"
+        req_path = ('/' + req_path) if req_path else ''
+        url = f"{service['ipv4_scheme']}://{service['subdomain']}.{domain}:{port}{path}{req_path}"
         logger.info(f"重定向到 IPv4 web 服务: {service_name} -> {url}")
         return redirect(url)
     else:
