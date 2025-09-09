@@ -336,9 +336,14 @@
                             <!-- Web服务域名访问 -->
                             {% set path = service_info.path if service_info.path else '' %}
                             {% if service_info.subdomain %}
-                                <a href="{{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}"
+                                {% if service_info.ipv4_domain %}
+                                    {% set domain = config.domains['ipv4_' + service_info.ipv4_domain] %}
+                                {% else %}
+                                    {% set domain = config.domains.ipv4 %}
+                                {% endif %}
+                                <a href="{{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ domain }}:{{ config.stun_ports.ddasus_web }}{{ path }}"
                                    class="access-link" target="_blank">
-                                    {{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ config.domains.ipv4 }}:{{ config.stun_ports.ddasus_web }}{{ path }}
+                                    {{ service_info.ipv4_scheme }}://{{ service_info.subdomain }}.{{ domain }}:{{ config.stun_ports.ddasus_web }}{{ path }}
                                 </a>
                             {% elif service_name == 'ddasus_web' %}
                                 <!-- info直接使用主域名 -->

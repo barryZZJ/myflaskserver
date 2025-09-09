@@ -120,7 +120,12 @@ def ipv4_redirect(service_name, req_path=''):
     if not port:
         return f"IPv4服务 {service_name} 端口配置不存在", 404
 
-    domain = config['domains']['ipv4']
+    # 确定使用哪个IPv6主机的IP和域名
+    if 'ipv4_domain' in service:
+        host_key = f'ipv4_{service["ipv4_domain"]}'
+        domain = config['domains'][host_key]
+    else:
+        domain = config['domains']['ipv4']
 
     if service['type'] == 'web':
         path = service.get('path', '')
@@ -155,10 +160,13 @@ def ipv6_redirect(service_name):
     # 确定使用哪个IPv6主机的IP和域名
     host_key = f'ipv6_{service["ipv6_host"]}'
 
-    if host_key not in config['ips']:
-        return f"IPv6服务 {service_name} 主机配置错误", 404
+    if 'nspshare' in service["ipv6_host"]:
+        configured_ip = config['ips']['ipv6_ddasus']
+    else:
+        if host_key not in config['ips']:
+            return f"IPv6服务 {service_name} 主机配置错误", 404
 
-    configured_ip = config['ips'][host_key]
+        configured_ip = config['ips'][host_key]
     domain = config['domains'][host_key]
     port = service['original_port']
 
