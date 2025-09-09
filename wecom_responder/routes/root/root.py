@@ -9,10 +9,6 @@ bp_root = Blueprint('root', __name__)
 def welcome():
     return 'Welcome to wecom_responder!'
 
-@bp_root.route('/tencent17020964508655017006.txt')
-def wxverify():
-    return '5211949090338753366'
-
 @bp_root.route('/')
 def root():
     sock = request.environ.get('werkzeug.socket')

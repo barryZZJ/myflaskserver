@@ -1,7 +1,9 @@
 {
 	"token": "",
 	"encodingAESKey": "",
-	"cid": "",
-	"aid": "",
-	"secret": ""
+	"bot": {
+		"cid": "",
+		"aid": "",
+		"secret": ""
+	}
 }
