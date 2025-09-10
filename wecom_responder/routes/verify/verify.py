@@ -2,7 +2,7 @@ from flask import Blueprint
 
 # Create a Blueprint object for the main section
 bp_verify = Blueprint('verify', __name__, url_prefix='/')
-# note: moved to files/xx.txt
+# note: moved to static/xx.txt
 
 @bp_verify.route('/WW_verify_Ua7WxLfBndo8F2SR.txt')
 def verify():

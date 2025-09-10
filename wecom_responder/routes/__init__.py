@@ -1,11 +1,16 @@
-from .verify.verify import bp_verify
-from .subscribe_chan.subscribe_chan import bp_recv_from_subscribe_chan, bp_send_to_subscribe_chan
-from .drink_chan.drink_chan import bp_send_to_drink_chan, bp_recv_from_drink_chan
-from .nspshare_chan.nspshare_chan import bp_recv_from_nspshare_chan, bp_send_to_nspshare_chan
-from .temp_media_redirect.temp_media_redirect import bp_temp_media_redirect
-from .redirect.redirect import bp_redirect
-from .redirect.redirectlocal import bp_redirectlocal
-from .root.root import bp_root
-# from .wireguard.wireguard_chan import bp_wireguard_chan, bp_wireguard
-from .webhook.webhook import bp_webhook
-from .ddredirect.ddredirect import bp_ddredirect
+# # 为了向后兼容，导出一些常用的bp变量
+# def get_bp(package_name: str, bp_name: str = None):
+#     """获取bp的辅助函数"""
+#     return bp_loader.get_bp_by_name(package_name, bp_name)
+
+# 常用bp的快捷访问
+# bp_verify = get_bp('verify')
+# bp_redirectlocal = get_bp('redirectlocal')
+# bp_root = get_bp('root')
+
+# 如果需要获取特定bp，可以使用：
+# bp_recv_from_subscribe_chan = get_bp('subscribe_chan', 'subscribe_chan_recv')
+# bp_send_to_subscribe_chan = get_bp('subscribe_chan', 'subscribe_chan_send')
+
+# 导出加载器和已加载的bp字典
+# __all__ = ['bp_loader', 'loaded_bps', 'get_bp']

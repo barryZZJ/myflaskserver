@@ -1,14 +1,15 @@
 import re
+from pathlib import Path
 
 import requests
 from flask import Blueprint, Response, stream_with_context, render_template, request
 from loguru import logger
 from wecomsan import WecomSan
 
-from wecom_responder.utils.config import load_conf, curr_dir
+from wecom_responder.utils.config import config_manager
 
 # Create a Blueprint object for the main section
-bp_temp_media_redirect = Blueprint('wecom_temp_media', __name__, url_prefix='/wecom_temp_media')
+bp_temp_media_redirect = Blueprint('temp_media_redirect', __name__, url_prefix='/wecom_temp_media')
 
 
 def modify_html(text: str, is_ua_wechat: bool) -> str:
@@ -23,7 +24,8 @@ def modify_html(text: str, is_ua_wechat: bool) -> str:
 
 @bp_temp_media_redirect.route('/file/<media_id>')
 def temp_media_download(media_id):
-    conf = load_conf(curr_dir(__file__))
+    current_file = Path(__file__).stem
+    conf = config_manager.get_param(current_file)
     wecombot = WecomSan(**conf['bot'])
     redirect_url = f'https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token={wecombot.access_token}&media_id={media_id}'
     logger.info('media_id: {}', media_id)
@@ -45,7 +47,8 @@ def temp_media_download(media_id):
 
 @bp_temp_media_redirect.route('/<media_id>')
 def temp_media_redirect(media_id):
-    conf = load_conf(curr_dir(__file__))
+    current_file = Path(__file__).stem
+    conf = config_manager.get_param(current_file)
     wecombot = WecomSan(**conf['bot'])
     redirect_url = f'https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token={wecombot.access_token}&media_id={media_id}'
     logger.info('media_id: {}', media_id)

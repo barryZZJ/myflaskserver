@@ -1,0 +1,85 @@
+{
+  "enabled_modules": {
+    "ddredirect": true,
+    "drink_chan": true,
+    "nspshare_chan": true,
+    "redirect": true,
+    "redirectlocal": true,
+    "root": true,
+    "subscribe_chan": true,
+    "temp_media_redirect": true,
+    "verify": true,
+    "webhook": true,
+    "wireguard": true
+  },
+  "module_params": {
+    "drink_chan": {
+        "token": "",
+        "encodingAESKey": "",
+        "bot": {
+            "cid": "wwxx",
+            "aid": "10000xx",
+            "secret": ""
+        }
+    },
+    "nspshare_chan": {
+        "token": "",
+        "encodingAESKey": "",
+        "bot": {
+            "cid": "wwxx",
+            "aid": "10000xx",
+            "secret": ""
+        }
+    },
+    "subscribe_chan": {
+        "token": "",
+        "encodingAESKey": "",
+        "bot": {
+            "cid": "wwxx",
+            "aid": "10000xx",
+            "secret": ""
+        }
+    },
+    "temp_media_redirect": {
+        "token": "",
+        "encodingAESKey": "",
+        "bot": {
+            "cid": "wwxx",
+            "aid": "10000xx",
+            "secret": ""
+        }
+    },
+    "webhook": {
+        "bots": {
+            "mone_chan": {
+                "cid": "wwxx",
+                "aid": "10000xx",
+                "secret": ""
+            },
+            "notify_chan": {
+                "cid": "wwxx",
+                "aid": "10000xx",
+                "secret": ""
+            }
+        },
+        "freshrss": {
+            "username": "",
+            "api_password": "",
+            "api_url": "http://xxx/api/fever.php?api"
+        },
+        "flask": {
+            "wecom_temp_media_route_url": "http://xxx/wecom_temp_media"
+        }
+    },
+    "wireguard": {
+        "token": "",
+        "encodingAESKey": "",
+        "bot": {
+            "cid": "wwxx",
+            "aid": "10000xx",
+            "secret": ""
+        },
+        "url": "http://xxx/wireguard"
+    }
+  }
+}

@@ -1,0 +1,250 @@
+{
+    "ips": {
+        "ipv4": "",
+        "ipv6_ddasus": "",
+        "ipv6_dd": ""
+    },
+    "stun_ports": {
+        "ddasus_web": 0,
+        "dd_rdp": 0,
+        "dorm_rdp": 0,
+        "dorm_ssh": 0,
+        "ddasus_frps": 0,
+        "dd_ssh": 0,
+        "dorm_qb": 0,
+        "dd_qb": 0,
+        "ddalist_dav": 0
+    },
+    "services": {
+        "ddflaskserver": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddflaskserver",
+            "path": "/dd"
+        },
+        "ddspeedtest": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddspeedtest"
+        },
+        "ddalist": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddalist"
+        },
+        "ddqb": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddqb"
+        },
+        "ddemby": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddemby"
+        },
+        "ddddnsgo": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddddnsgo"
+        },
+        "ddlucky": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddlucky",
+            "path": ""
+        },
+        "ddfrpsdash": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "ddfrpsdash"
+        },
+        "ddasuslucky": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "ddasuslucky",
+            "path": ""
+        },
+        "ddsunshinedash": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "https",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd",
+            "subdomain": "ddsunshinedash"
+        },
+        "ddasusadmin": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "https",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "ddasusadmin"
+        },
+        "bjasusadmin": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "https",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "bjasusadmin"
+        },
+        "bjalist": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "bjalist"
+        },
+        "nspsharewan": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv4_domain": "base",
+            "subdomain": "nspsharewan",
+            "ipv6_host": "nspsharehost"
+        },
+        "dormemby": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "dormemby"
+        },
+        "dormqb": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "dormqb"
+        },
+        "dormspeedtest": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "dormspeedtest"
+        },
+        "officeqb": {
+            "type": "web",
+            "ipv4_scheme": "http",
+            "ipv6_scheme": "http",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "ddasus",
+            "subdomain": "officeqb"
+        },
+        "dd_rdp": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "dd"
+        },
+        "dorm_rdp": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "ddasus"
+        },
+        "dorm_ssh": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "ddasus"
+        },
+        "office_ssh": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "ddasus"
+        },
+        "ddasus_frps": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "ddasus"
+        },
+        "dd_sunshine": {
+            "type": "service",
+            "ipv4_direct": false,
+            "original_port": 0,
+            "ipv6_host": "dd"
+        },
+        "dd_ssh": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "dd"
+        },
+        "dd_qb": {
+            "type": "service",
+            "ipv4_direct": true,
+            "original_port": 0,
+            "ipv6_host": "dd"
+        }
+    },
+    "domains": {
+        "ipv4": "",
+        "ipv4_base": "",
+        "ipv6_ddasus": "",
+        "ipv6_dd": "",
+        "ipv6_nspsharehost": ""
+    },
+    "TXT": {
+        "ipv4": "",
+        "ipv6_ddasus": "",
+        "ipv6_dd": ""
+    },
+    "auth": {
+        "username": "",
+        "password": ""
+    }
+}

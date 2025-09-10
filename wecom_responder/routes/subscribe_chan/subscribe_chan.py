@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from flask import Blueprint, request
 
 from wecomsan import WecomSan
@@ -5,11 +7,12 @@ from wecomsan import WecomSan
 from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TextSubmitter
 from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, SUBBOT_PORT, DUMBBOT_HOST
 from wecom_responder.utils.log import logger
-from wecom_responder.utils.config import load_conf, curr_dir
+from wecom_responder.utils.config import config_manager
 from wecom_responder.utils.manager import ChatManager, UserManager
 
 
-conf = load_conf(curr_dir(__file__))
+current_file = Path(__file__).stem
+conf = config_manager.get_param(current_file)
 
 # Create a Blueprint object for the main section
 # receive messages from wecom user
@@ -17,7 +20,7 @@ bp_recv_from_subscribe_chan = WecomReceiver(
     conf['token'],
     conf['encodingAESKey'],
     conf['bot']['cid'],
-    'subcribe_chan',
+    'recv_from_subscribe_chan',
     __name__,
     logger=logger,
     url_prefix='/subscribe_chan_recv',
@@ -29,7 +32,7 @@ wecombot = WecomSan(**conf['bot'])
 # touids: dict[Chat, str] = manager.dict()
 
 # send messages to wecom user received from subbot
-bp_send_to_subscribe_chan = Blueprint('subscribe_chan_send', __name__, url_prefix='/subscribe_chan_send')
+bp_send_to_subscribe_chan = Blueprint('send_to_subscribe_chan', __name__, url_prefix='/subscribe_chan_send')
 
 @bp_recv_from_subscribe_chan.receive
 def on_text(message: BaseMessage):

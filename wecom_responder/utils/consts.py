@@ -13,8 +13,9 @@ DB_JOBSTORE = 'mongodb://127.0.0.1:27017/admin?retryWrites=true&w=majority'
 
 LOG = ROOT / 'logs' / 'responder.log'
 
-FILES = ROOT / 'files'
-PDFJS = FILES / 'pdf.js'
+STATIC_FOLDER = 'static'
+CONFIG_FILE = ROOT / 'config.json'
+CONFIG_FILE_DDREDIRECT = ROOT / 'config_ddredirect.json'
 
 PERSISTENCE_PKL_BY_NAME = lambda name: ROOT / 'data' / f'{name}_pkl'
 
@@ -26,4 +27,4 @@ DRINKBOT_PORT = 18889
 
 APP_HOST = '0.0.0.0'
 APP_HOST6 = '::'
-APP_PORT = 14222
+APP_PORT = 13222

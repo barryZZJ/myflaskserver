@@ -1,15 +1,16 @@
 import json
-import os
 import dns.resolver
 from functools import wraps
 from flask import Blueprint, Response, request, redirect, render_template
 from loguru import logger
+from wecom_responder.utils.consts import CONFIG_FILE_DDREDIRECT
 
 # Create a Blueprint object for the main section
 bp_ddredirect = Blueprint('ddredirect', __name__, url_prefix='/dd', template_folder='templates')
 
 # 配置文件路径
-CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
+#! 因为这里的内容会经常变化，因此不存入main config file
+CONFIG_FILE = CONFIG_FILE_DDREDIRECT
 
 def load_config():
     """加载配置文件"""

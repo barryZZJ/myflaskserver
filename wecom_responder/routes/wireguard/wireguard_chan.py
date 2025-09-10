@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import time
 from threading import Thread
 
@@ -9,27 +11,28 @@ from wecomsan import WecomSan
 from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage
 from wecom_responder.utils.consts import MAX_RESPONSE_BYTES
 from wecom_responder.utils.log import logger
-from wecom_responder.utils.config import load_conf, curr_dir
+from wecom_responder.utils.config import config_manager
 
 # 使用说明：
 # 先在企业微信机器人Wireguard酱里启动wgfrontend服务，然后进行配置。超时10分钟，或手动指定后，自动关闭wgfrontend服务。
 
 # 跳转至wireguard配置页面
-bp_wireguard = Blueprint('wireguard', __name__, url_prefix='/wireguard')
+bp_send_to_wireguard_chan = Blueprint('wireguard', __name__, url_prefix='/wireguard')
 
-@bp_wireguard.route('/')
+@bp_send_to_wireguard_chan.route('/')
 def wireguard():
     return redirect(url_for('redirectlocal.proxy_url_by_name', key='wireguard'))
 
-conf = load_conf(curr_dir(__file__))
+current_file = Path(__file__).stem
+conf = config_manager.get_param(current_file)
 
 # Create a Blueprint object for the main section
 # receive messages from wecom user
-bp_wireguard_chan = WecomReceiver(
+bp_recv_from_wireguard_chan = WecomReceiver(
     conf['token'],
     conf['encodingAESKey'],
     conf['bot']['cid'],
-    'wireguard_chan',
+    'recv_from_wireguard_chan',
     __name__,
     logger=logger,
     url_prefix='/wireguard_chan',
@@ -51,7 +54,7 @@ def systemctl(action, service):
     out, err, ret = eh.execute(command, suppressoutput=True, suppresserrors=True)
     return out, err, ret
 
-@bp_wireguard_chan.receive
+@bp_recv_from_wireguard_chan.receive
 def on_text(message: BaseMessage):
     logger.info('new message received: ' + str(message))
     if isinstance(message, TextMessage):
