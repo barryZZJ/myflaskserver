@@ -1,6 +1,7 @@
 from .verify.verify import bp_verify
 from .subscribe_chan.subscribe_chan import bp_recv_from_subscribe_chan, bp_send_to_subscribe_chan
 from .drink_chan.drink_chan import bp_send_to_drink_chan, bp_recv_from_drink_chan
+from .nspshare_chan.nspshare_chan import bp_recv_from_nspshare_chan, bp_send_to_nspshare_chan
 from .temp_media_redirect.temp_media_redirect import bp_temp_media_redirect
 from .redirect.redirect import bp_redirect
 from .redirect.redirectlocal import bp_redirectlocal
