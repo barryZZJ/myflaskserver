@@ -5,7 +5,7 @@ from flask import Blueprint, request
 from wecomsan import WecomSan
 
 from wecom_responder.utils import WecomReceiver, TextMessage, BaseMessage, TextSubmitter
-from wecom_responder.utils.consts import MAX_RESPONSE_BYTES, SUBBOT_PORT, DUMBBOT_HOST
+from wecom_responder.utils.consts import MAX_RESPONSE_BYTES
 from wecom_responder.utils.log import logger
 from wecom_responder.utils.config import config_manager
 from wecom_responder.utils.manager import ChatManager, UserManager
@@ -26,6 +26,8 @@ bp_recv_from_subscribe_chan = WecomReceiver(
     url_prefix='/subscribe_chan_recv',
 )
 
+DUMBBOT_HOST = config_manager['DUMBBOT_HOST']
+SUBBOT_PORT = config_manager['SUBBOT_PORT']
 submitter = TextSubmitter(listen=DUMBBOT_HOST, port=SUBBOT_PORT)
 wecombot = WecomSan(**conf['bot'])
 

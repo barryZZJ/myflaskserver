@@ -1,4 +1,10 @@
 {
+  "APP_HOST": "0.0.0.0",
+  "APP_HOST6": "::",
+  "APP_PORT": 23222,
+  "DUMBBOT_HOST": "127.0.0.1",
+  "SUBBOT_PORT": 18888,
+  "DRINKBOT_PORT": 18889,
   "enabled_modules": {
     "ddredirect": true,
     "drink_chan": true,
@@ -14,72 +20,76 @@
   },
   "module_params": {
     "drink_chan": {
-        "token": "",
-        "encodingAESKey": "",
-        "bot": {
-            "cid": "wwxx",
-            "aid": "10000xx",
-            "secret": ""
-        }
+      "token": "",
+      "encodingAESKey": "",
+      "bot": {
+        "cid": "wwxx",
+        "aid": "10000xx",
+        "secret": ""
+      }
     },
     "nspshare_chan": {
-        "token": "",
-        "encodingAESKey": "",
-        "bot": {
-            "cid": "wwxx",
-            "aid": "10000xx",
-            "secret": ""
-        }
+      "token": "",
+      "encodingAESKey": "",
+      "bot": {
+        "cid": "wwxx",
+        "aid": "10000xx",
+        "secret": ""
+      },
+      "alist": {
+        "api_url": "",
+        "token": ""
+      }
     },
     "subscribe_chan": {
-        "token": "",
-        "encodingAESKey": "",
-        "bot": {
-            "cid": "wwxx",
-            "aid": "10000xx",
-            "secret": ""
-        }
+      "token": "",
+      "encodingAESKey": "",
+      "bot": {
+        "cid": "wwxx",
+        "aid": "10000xx",
+        "secret": ""
+      }
     },
     "temp_media_redirect": {
-        "token": "",
-        "encodingAESKey": "",
-        "bot": {
-            "cid": "wwxx",
-            "aid": "10000xx",
-            "secret": ""
-        }
+      "token": "",
+      "encodingAESKey": "",
+      "bot": {
+        "cid": "wwxx",
+        "aid": "10000xx",
+        "secret": ""
+      }
     },
     "webhook": {
-        "bots": {
-            "mone_chan": {
-                "cid": "wwxx",
-                "aid": "10000xx",
-                "secret": ""
-            },
-            "notify_chan": {
-                "cid": "wwxx",
-                "aid": "10000xx",
-                "secret": ""
-            }
+      "bots": {
+        "mone_chan": {
+          "cid": "wwxx",
+          "aid": "10000xx",
+          "secret": ""
         },
-        "freshrss": {
-            "username": "",
-            "api_password": "",
-            "api_url": "http://xxx/api/fever.php?api"
-        },
-        "flask": {
-            "wecom_temp_media_route_url": "http://xxx/wecom_temp_media"
+        "notify_chan": {
+          "cid": "wwxx",
+          "aid": "10000xx",
+          "secret": ""
         }
+      },
+      "freshrss": {
+        "username": "",
+        "api_password": "",
+        "api_url": "http://xxx/api/fever.php?api"
+      },
+      "flask": {
+        "wecom_temp_media_route_url": "http://xxx/wecom_temp_media"
+      }
     },
     "wireguard": {
-        "token": "",
-        "encodingAESKey": "",
-        "bot": {
-            "cid": "wwxx",
-            "aid": "10000xx",
-            "secret": ""
-        },
-        "url": "http://xxx/wireguard"
+      "token": "",
+      "encodingAESKey": "",
+      "bot": {
+        "cid": "wwxx",
+        "aid": "10000xx",
+        "secret": ""
+      },
+      "url": "http://xxx/wireguard"
     }
   }
 }

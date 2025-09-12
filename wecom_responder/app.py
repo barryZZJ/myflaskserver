@@ -2,7 +2,8 @@ import sys
 from flask import Flask
 from loguru import logger
 
-from wecom_responder.utils.consts import STATIC_FOLDER, APP_PORT, APP_HOST, APP_HOST6
+from wecom_responder.utils.config import config_manager
+from wecom_responder.utils.consts import STATIC_FOLDER
 from wecom_responder.utils.bp_loader import bp_loader
 
 app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='/')
@@ -24,6 +25,9 @@ register_all_bps()
 
 if __name__ == '__main__':
     print('Starting wecom_responder...')
+    APP_HOST = config_manager['APP_HOST']
+    APP_PORT = config_manager['APP_PORT']
+    APP_HOST6 = config_manager['APP_HOST6']
     if sys.argv[-1] == '--debug':
         app.run(APP_HOST, port=APP_PORT, debug=True)
     elif sys.argv[-1] == '--ipv6':

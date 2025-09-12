@@ -11,6 +11,8 @@ from wecom_responder.utils.config import config_manager
 # Create a Blueprint object for the main section
 bp_webhook = Blueprint('webhook', __name__, url_prefix='/webhook')
 
+current_file = Path(__file__).stem
+conf = config_manager.get_param(current_file)
 
 def redirect_rssitem_textcard(data, use_orig_link: bool = True) -> bool:
     # {
@@ -30,8 +32,6 @@ def redirect_rssitem_textcard(data, use_orig_link: bool = True) -> bool:
     textcard_title = data['feed']
     textcard_desc = 'Webhook:' + data['title']
 
-    current_file = Path(__file__).stem
-    conf = config_manager.get_param(current_file)
     # send textcard instead of text. upload temp file.
     bot = wecomsan.WecomSan(**conf['bots']['mone_chan'])
     try:
@@ -89,8 +89,6 @@ def freshrss():
 
 
 def send_msg(msg: dict) -> Response:
-    current_file = Path(__file__).stem
-    conf = config_manager.get_param(current_file)
     bot = wecomsan.WecomSan(**conf['bots']['notify_chan'])
     try:
         text, touid = msg['text'], msg.get('touid', '@all')

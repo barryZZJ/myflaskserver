@@ -11,7 +11,14 @@ class ConfigManager:
         self.config_path = config_path
         self._config = {}
         self._load_main_config()
-    
+
+    def __getitem__(self, key):
+        return self._config.get(key)
+
+    def __setitem__(self, key, value):
+        self._config[key] = value
+        self._save_main_config()
+
     def _load_main_config(self):
         """加载主配置文件"""
         try:
@@ -57,20 +64,3 @@ class ConfigManager:
 
 # 全局配置管理器实例
 config_manager = ConfigManager()
-
-def load_conf(dir: Path) -> dict:
-    """向后兼容的配置加载函数 - 已弃用，使用 get_bp_config 替代"""
-    bp_name = dir.name
-    logger.warning(f"load_conf 函数已弃用，请使用 config_manager.get_bp_config('{bp_name}')")
-    return config_manager.get_param(bp_name)
-
-def curr_dir(file: str) -> Path:
-    return Path(file).parent
-
-def is_module_enabled(module_name: str) -> bool:
-    """检查bp是否启用"""
-    return config_manager.is_module_enabled(module_name)
-
-def get_param(module_name: str) -> dict:
-    """获取bp配置"""
-    return config_manager.get_param(module_name)

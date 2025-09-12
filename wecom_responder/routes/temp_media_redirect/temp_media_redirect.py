@@ -10,7 +10,8 @@ from wecom_responder.utils.config import config_manager
 
 # Create a Blueprint object for the main section
 bp_temp_media_redirect = Blueprint('temp_media_redirect', __name__, url_prefix='/wecom_temp_media')
-
+current_file = Path(__file__).stem
+conf = config_manager.get_param(current_file)
 
 def modify_html(text: str, is_ua_wechat: bool) -> str:
     pat = re.compile(r'<a id="redirect" href="([^"]+?)" class="wx_tap_link js_wx_tap_highlight weui-wa-hotarea">')
@@ -24,8 +25,6 @@ def modify_html(text: str, is_ua_wechat: bool) -> str:
 
 @bp_temp_media_redirect.route('/file/<media_id>')
 def temp_media_download(media_id):
-    current_file = Path(__file__).stem
-    conf = config_manager.get_param(current_file)
     wecombot = WecomSan(**conf['bot'])
     redirect_url = f'https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token={wecombot.access_token}&media_id={media_id}'
     logger.info('media_id: {}', media_id)
@@ -47,8 +46,6 @@ def temp_media_download(media_id):
 
 @bp_temp_media_redirect.route('/<media_id>')
 def temp_media_redirect(media_id):
-    current_file = Path(__file__).stem
-    conf = config_manager.get_param(current_file)
     wecombot = WecomSan(**conf['bot'])
     redirect_url = f'https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token={wecombot.access_token}&media_id={media_id}'
     logger.info('media_id: {}', media_id)
