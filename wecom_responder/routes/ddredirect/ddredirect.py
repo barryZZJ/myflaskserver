@@ -132,6 +132,9 @@ def ipv4_redirect(service_name, req_path=''):
         path = service.get('path', '')
         req_path = ('/' + req_path) if req_path else ''
         url = f"{service['ipv4_scheme']}://{service['subdomain']}.{domain}:{port}{path}{req_path}"
+        query_string = request.query_string.decode()
+        if query_string:
+            url += f"?{query_string}"
         logger.info(f"重定向到 IPv4 web 服务: {service_name} -> {url}")
         return redirect(url)
     else:
@@ -194,6 +197,9 @@ def ipv6_redirect(service_name):
             url = f"{service['ipv6_scheme']}://{domain}:{port}{path}"
         else:
             url = f"{service['ipv6_scheme']}://[{configured_ip}]:{port}{path}"
+        query_string = request.query_string.decode()
+        if query_string:
+            url += f"?{query_string}"
 
         logger.info(f"重定向到 IPv6 web 服务: {service_name} -> {url}")
         return redirect(url)
