@@ -30,7 +30,7 @@ def redirect_rssitem_textcard(data, use_orig_link: bool = True) -> bool:
     #     msg = f'来自{feed.title}的更新：\n标题：{rssitem.title}\n<a href="{rssitem.url}">查看详情</a>'
     # soup = BeautifulSoup(rssitem.rich_content, 'html.parser')
     textcard_title = data['feed']
-    textcard_desc = 'Webhook:' + data['title']
+    textcard_desc = 'myflaskServer Webhook:' + data['title']
 
     # send textcard instead of text. upload temp file.
     bot = wecomsan.WecomSan(**conf['bots']['mone_chan'])
@@ -49,7 +49,7 @@ def redirect_rssitem_textcard(data, use_orig_link: bool = True) -> bool:
         resp = bot.send_textcard(textcard_title, textcard_desc, redirected_url)
         return resp.errcode == wecomsan.SUCCESS
     except pydantic.ValidationError as e:
-        bot.send_autosplit('error: {}', str(e))
+        bot.send_autosplit('myflaskServer webhook error: {}', str(e))
     except requests.RequestException:
         logger.error('RequestException on redirecting rssitem {}', data['title'])
     return False
@@ -105,7 +105,7 @@ def send_msg(msg: dict) -> Response:
 @bp_webhook.route('/msg', methods=['GET', 'POST'])
 def msg():
     if request.method == 'GET':
-        return make_response('Hi', 200)
+        return 'Hi', 200
     data = request.json
     return send_msg(data)
 

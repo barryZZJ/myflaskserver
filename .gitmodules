@@ -5,6 +5,3 @@
 	path = wecom_responder/utils/tv_subscribe_bot
 	url = https://github.com/zhimengsub/TVSubscribeBot
 	branch = framework
-[submodule "wecom_responder/utils/wecomsan"]
-	path = wecom_responder/utils/wecomsan
-	url = https://github.com/barryZZJ/wecomsan.git
