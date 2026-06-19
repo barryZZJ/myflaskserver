@@ -1,6 +1,6 @@
 # myflaskserver
 
-`myflaskserver` is a Flask-based personal gateway service. Some useful modules are designed in `wecom_responder/routes`. It is mainly used as a endpoint for responding my WeCom bot messages, with some other features like a small DDNS-style redirect dashboard, and exposing webhook endpoints.
+`myflaskserver` is a Flask-based personal gateway service. Some useful modules are designed in `wecom_responder/routes`. It is mainly used as a endpoint for responding my WeCom bot messages, with some other features like a small DDNS-style redirect dashboard, and exposing webhook endpoints for [FreshrssCrawler](https://github.com/barryZZJ/freshrsscrawler).
 
 ## Modular Route loading
 
