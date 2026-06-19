@@ -2,37 +2,7 @@
 
 `myflaskserver` is a Flask-based personal gateway service. Some useful modules are designed in `wecom_responder/routes`. It is mainly used as a endpoint for responding my WeCom bot messages, with some other features like a small DDNS-style redirect dashboard, and exposing webhook endpoints.
 
-## Project layout
-
-- `wecom_responder/app.py` creates the Flask app and registers all enabled
-  blueprints.
-- `wecom_responder/routes/` contains featured modules.
-- `wecom_responder/config.json` is the live runtime configuration.
-- `wecom_responder/config_template.json` documents the expected main config
-  shape.
-- `wecom_responder/config_ddredirect.json` stores the mutable DD redirect
-  service/IP/port configuration.
-- `requirements.txt` lists the Python dependencies.
-
-## Running
-
-Install dependencies, prepare `wecom_responder/config.json` from
-`config_template.json`, then run:
-
-```bash
-python3 -m wecom_responder.app
-```
-
-The default template uses:
-
-- `APP_HOST`: `0.0.0.0`
-- `APP_HOST6`: `::`
-- `APP_PORT`: `23222`
-- `DUMBBOT_HOST`: `127.0.0.1`
-- `SUBBOT_PORT`: `18888`
-- `DRINKBOT_PORT`: `18889`
-
-## Route loading
+## Modular Route loading
 
 At startup, `BpLoader` scans `wecom_responder/routes/*/*.py`, imports modules
 whose filename matches the route directory name, and registers every Flask
@@ -44,20 +14,6 @@ For example, `routes/webhook/webhook.py` is imported as
 
 
 ## Routes / Modules
-
-### Root routes
-
-#### `GET /test`
-
-Health-check style endpoint. Returns the plain text response:
-
-```text
-Welcome to wecom_responder!
-```
-
-#### `GET /`
-
-Blocked to prevent exposure of the service.
 
 ### Subscribe channel routes
 
@@ -372,6 +328,20 @@ In the automatically loaded `wireguard.py` module this endpoint returns the URL
 as text. The sibling `wireguard_chan.py` module contains a redirecting variant
 and WeCom command handling for WireGuard service control, but it is not
 registered by the current auto-loader.
+
+### Root routes
+
+#### `GET /test`
+
+Health-check style endpoint. Returns the plain text response:
+
+```text
+Welcome to wecom_responder!
+```
+
+#### `GET /`
+
+Blocked to prevent exposure of the service.
 
 ## Configuration notes
 
