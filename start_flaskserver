@@ -1,1 +1,1 @@
-nohup python3 -m wecom_responder.app >nohup_responder.out &
+nohup python3 -m wecom_responder.app >nohup_flaskserver.out &
