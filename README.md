@@ -1,6 +1,6 @@
 # myflaskserver
 
-`myflaskserver` is a Flask-based personal gateway service. Some useful modules are designed in `wecom_responder/routes`. It is mainly used as a endpoint for responding my WeCom bot messages, with some other features like a small DDNS-style redirect dashboard, and exposing webhook endpoints for [FreshrssCrawler](https://github.com/barryZZJ/freshrsscrawler).
+`myflaskserver` is a Flask-based personal gateway service. Some useful modules are designed in `wecom_responder/routes`. It is mainly used as a endpoint for responding my WeCom bot messages, with some other features like a small DDNS-style redirect dashboard, and exposing webhook endpoints for [FreshrssCrawler](https://github.com/barryZZJ/freshrsscrawler). Also include two WeCom bots: [`TVSubscriberBot`](https://github.com/zhimengsub/TVSubscribeBot) for subscribing TV programs and `DrinkBot` for recording daily drink intake. Both bots support interactive queries and scheduled tasks, and are bridged to WeCom through the subscribe channel and drink channel modules respectively.
 
 ## Modular Route loading
 
@@ -17,7 +17,7 @@ For example, `routes/webhook/webhook.py` is imported as
 
 ### Subscribe channel routes
 
-The `subscribe_chan` module bridges incoming WeCom messages to a local text bot [TVSubscriberBot](https://github.com/zhimengsub/TVSubscribeBot) in `subbot.py`
+The `subscribe_chan` module bridges incoming WeCom messages to a local text bot [`TVSubscriberBot`](https://github.com/zhimengsub/TVSubscribeBot) in `subbot.py`
 and sends bot results back to WeCom. The `TVSubscriberBot` queries and subscribe tv programs. It interactively ask for tv information like channel name and program title, and supports scheduled queries.
 
 It creates a `WecomReceiver` with URL prefix:
