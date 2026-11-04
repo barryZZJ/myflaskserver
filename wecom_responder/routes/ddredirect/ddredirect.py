@@ -3,6 +3,7 @@ import dns.resolver
 from functools import wraps
 from flask import Blueprint, Response, request, redirect, render_template
 from loguru import logger
+
 from wecom_responder.utils.consts import CONFIG_FILE_DDREDIRECT
 
 # Create a Blueprint object for the main section
@@ -12,7 +13,7 @@ bp_ddredirect = Blueprint('ddredirect', __name__, url_prefix='/dd', template_fol
 #! 因为这里的内容会经常变化，因此不存入main config file
 CONFIG_FILE = CONFIG_FILE_DDREDIRECT
 
-def load_config():
+def load_config() -> dict:
     """加载配置文件"""
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
@@ -51,6 +52,19 @@ def require_auth(f):
             )
         return f(*args, **kwargs)
     return decorated
+
+def require_auth_test(config):
+    """基本认证装饰器 - 仅用于dashboard"""
+
+    auth = request.authorization
+    if not auth or not (auth.username == config['auth']['username'] and
+                       auth.password == config['auth']['password']):
+        return Response(
+            'Need authentication', 401,
+            {'WWW-Authenticate': 'Basic realm="DD Network Access"'}
+        )
+    else:
+        return None
 
 def resolve_txt_record(domain):
     """解析域名的TXT记录"""
@@ -138,9 +152,13 @@ def ipv4_redirect(service_name, req_path=''):
         logger.info(f"重定向到 IPv4 web 服务: {service_name} -> {url}")
         return redirect(url)
     else:
+        if (resp:=require_auth_test(config)) is not None:
+            return resp
+
         address = f"{ip}:{port}"
         url = f"{domain}:{port}"
-        resp = f"{address}\n{url}"
+        # resp = f"{address}\n{url}"
+        resp = f"{url}"
         logger.info(f"返回 IPv4 服务地址: {service_name} -> {address}\n{service_name} -> {url}")
         return Response(resp, mimetype='text/plain')
 
