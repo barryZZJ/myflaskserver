@@ -35,6 +35,48 @@ def save_config(config):
         logger.error(f"保存配置文件失败: {e}")
         return False
 
+def _validate_service_data(service_name, service_data):
+    """校验服务配置，返回(是否合法, 错误信息)"""
+    if not service_name or not isinstance(service_name, str):
+        return False, "service_name must be a non-empty string."
+    if not isinstance(service_data, dict):
+        return False, "service must be an object."
+
+    service_type = service_data.get('type')
+    if service_type not in {'web', 'service'}:
+        return False, "service.type must be either 'web' or 'service'."
+
+    original_port = service_data.get('original_port')
+    if not isinstance(original_port, int) or not (1 <= original_port <= 65535):
+        return False, "service.original_port must be an integer between 1 and 65535."
+
+    ipv6_host = service_data.get('ipv6_host')
+    if not isinstance(ipv6_host, str) or not ipv6_host:
+        return False, "service.ipv6_host must be a non-empty string."
+
+    ipv4_direct = service_data.get('ipv4_direct')
+    if not isinstance(ipv4_direct, bool):
+        return False, "service.ipv4_direct must be a boolean."
+
+    if service_type == 'web':
+        ipv4_scheme = service_data.get('ipv4_scheme')
+        ipv6_scheme = service_data.get('ipv6_scheme')
+        subdomain = service_data.get('subdomain')
+
+        if ipv4_scheme not in {'http', 'https'}:
+            return False, "service.ipv4_scheme must be 'http' or 'https' for web type."
+        if ipv6_scheme not in {'http', 'https'}:
+            return False, "service.ipv6_scheme must be 'http' or 'https' for web type."
+        if not isinstance(subdomain, str) or not subdomain:
+            return False, "service.subdomain must be a non-empty string for web type."
+
+    if 'path' in service_data and not isinstance(service_data.get('path'), str):
+        return False, "service.path must be a string when provided."
+    if 'ipv4_domain' in service_data and not isinstance(service_data.get('ipv4_domain'), str):
+        return False, "service.ipv4_domain must be a string when provided."
+
+    return True, ""
+
 def require_auth(f):
     """基本认证装饰器 - 仅用于dashboard"""
     @wraps(f)
@@ -288,5 +330,55 @@ def webhook_update_stun_port():
 
     except Exception as e:
         logger.error(f"Webhook更新 STUN端口失败: {e}")
+        return {"error": str(e)}, 500
+
+
+@bp_ddredirect.route('/webhook/update_service', methods=['POST'])
+@require_auth
+def webhook_update_service():
+    """新增或修改config中的services项"""
+    try:
+        data = request.get_json()
+        if not data:
+            return {"error": "Invalid request body."}, 400
+
+        service_name = data.get('service_name')
+        service_data = data.get('service_data')
+        if not service_name or not isinstance(service_name, str):
+            return {"error": "service_name is required and must be a non-empty string."}, 400
+        if not isinstance(service_data, dict):
+            return {"error": "service is required and must be an object."}, 400
+
+        config = load_config()
+        if not config:
+            return {"error": "Failed to load current config."}, 500
+
+        services = config.setdefault('services', {})
+        existed = service_name in services
+        merged_service_data = {}
+        if existed and isinstance(services.get(service_name), dict):
+            merged_service_data.update(services[service_name])
+        merged_service_data.update(service_data)
+
+        is_valid, err_msg = _validate_service_data(service_name, merged_service_data)
+        if not is_valid:
+            return {"error": err_msg}, 400
+
+        services[service_name] = merged_service_data
+
+        if not save_config(config):
+            return {"error": f"Failed to save service config for {service_name}."}, 500
+
+        action = "updated" if existed else "created"
+        logger.info(f"Service {service_name} {action} via webhook")
+        return {
+            "message": f"Service {service_name} {action} successfully.",
+            "action": action,
+            "service_name": service_name,
+            "service": merged_service_data,
+        }, 200
+
+    except Exception as e:
+        logger.error(f"Webhook新增/修改service失败: {e}")
         return {"error": str(e)}, 500
 

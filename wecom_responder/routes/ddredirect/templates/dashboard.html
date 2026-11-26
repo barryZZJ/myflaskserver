@@ -35,25 +35,32 @@
             margin-bottom: 10px;
             color: #333;
         }
-        .network-copy-button {
+        .network-copy-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .network-copy-field {
             display: block;
             margin: 5px auto;
             padding: 5px 10px;
             background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 4px;
-            cursor: pointer;
+            cursor: text;
             font-size: 0.9em;
             color: #666;
             transition: all 0.2s;
-            text-decoration: none;
-            min-width: 120px;
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
+            text-align: center;
         }
-        .network-copy-button:hover {
+        .network-copy-field:hover {
             background-color: #f8f9fa;
             border-color: #007bff;
         }
-        .network-copy-button.copied {
+        .network-copy-field.copied {
             background-color: #d4edda;
             color: #155724;
             border-color: #c3e6cb;
@@ -111,7 +118,7 @@
             background-color: #f0f8ff;
             text-decoration: underline;
         }
-        .copy-button {
+        .copy-field {
             display: block;
             margin: 4px 0;
             padding: 4px 8px;
@@ -120,17 +127,15 @@
             color: #666;
             font-size: 0.9em;
             border: 1px solid #ddd;
-            cursor: pointer;
-            user-select: none;
+            cursor: text;
+            box-sizing: border-box;
+            width: 100%;
             transition: background-color 0.2s;
         }
-        .copy-button:hover {
+        .copy-field:hover {
             background-color: #e9ecef;
         }
-        .copy-button:active {
-            background-color: #d4edda;
-        }
-        .copy-button.copied {
+        .copy-field.copied {
             background-color: #d4edda;
             color: #155724;
             border-color: #c3e6cb;
@@ -172,6 +177,9 @@
         .toast.show {
             opacity: 1;
             transform: translateY(0);
+        }
+        .toast.error {
+            background-color: #dc3545;
         }
 
         /* 手机适配 */
@@ -240,45 +248,45 @@
         <div class="network-info">
             <div class="network-section">
                 <h3>IPv4 Network</h3>
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv4 }}', this)">
-                    {{ config.ips.ipv4 }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv4 地址"
+                       value="{{ config.ips.ipv4 }}" onclick="copyToClipboardWithToast(this)">
                 {% if dns_ips.ipv4_txt %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv4_txt }}', this)">
-                    {{ dns_ips.ipv4_txt }} (TXT)
+                <div class="network-copy-row">
+                    <input class="network-copy-field" type="text" readonly aria-label="IPv4 TXT 地址"
+                           value="{{ dns_ips.ipv4_txt }}" onclick="copyToClipboardWithToast(this)">
+                    <span>(TXT)</span>
                 </div>
                 {% endif %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv4 }}', this)">
-                    {{ config.domains.ipv4 }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv4 域名"
+                       value="{{ config.domains.ipv4 }}" onclick="copyToClipboardWithToast(this)">
             </div>
             <div class="network-section">
                 <h3>IPv6 ddasus</h3>
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv6_ddasus }}', this)">
-                    {{ config.ips.ipv6_ddasus }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv6 ddasus 地址"
+                       value="{{ config.ips.ipv6_ddasus }}" onclick="copyToClipboardWithToast(this)">
                 {% if dns_ips.ipv6_ddasus_txt %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv6_ddasus_txt }}', this)">
-                    {{ dns_ips.ipv6_ddasus_txt }} (TXT)
+                <div class="network-copy-row">
+                    <input class="network-copy-field" type="text" readonly aria-label="IPv6 ddasus TXT 地址"
+                           value="{{ dns_ips.ipv6_ddasus_txt }}" onclick="copyToClipboardWithToast(this)">
+                    <span>(TXT)</span>
                 </div>
                 {% endif %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv6_ddasus }}', this)">
-                    {{ config.domains.ipv6_ddasus }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv6 ddasus 域名"
+                       value="{{ config.domains.ipv6_ddasus }}" onclick="copyToClipboardWithToast(this)">
             </div>
             <div class="network-section">
                 <h3>IPv6 dd</h3>
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv6_dd }}', this)">
-                    {{ config.ips.ipv6_dd }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv6 dd 地址"
+                       value="{{ config.ips.ipv6_dd }}" onclick="copyToClipboardWithToast(this)">
                 {% if dns_ips.ipv6_dd_txt %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ dns_ips.ipv6_dd_txt }}', this)">
-                    {{ dns_ips.ipv6_dd_txt }} (TXT)
+                <div class="network-copy-row">
+                    <input class="network-copy-field" type="text" readonly aria-label="IPv6 dd TXT 地址"
+                           value="{{ dns_ips.ipv6_dd_txt }}" onclick="copyToClipboardWithToast(this)">
+                    <span>(TXT)</span>
                 </div>
                 {% endif %}
-                <div class="network-copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv6_dd }}', this)">
-                    {{ config.domains.ipv6_dd }}
-                </div>
+                <input class="network-copy-field" type="text" readonly aria-label="IPv6 dd 域名"
+                       value="{{ config.domains.ipv6_dd }}" onclick="copyToClipboardWithToast(this)">
             </div>
         </div>
 
@@ -324,9 +332,8 @@
                             {% else %}
                                 {% set ipv4_port = config.stun_ports.get(service_name) %}
                                 {% if ipv4_port %}
-                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.ips.ipv4 }}:{{ ipv4_port }}', this)">
-                                    {{ config.ips.ipv4 }}:{{ ipv4_port }}
-                                </div>
+                                <input class="copy-field" type="text" readonly aria-label="IPv4 直连地址"
+                                       value="{{ config.ips.ipv4 }}:{{ ipv4_port }}" onclick="copyToClipboardWithToast(this)">
                                 {% endif %}
                             {% endif %}
                         {% endif %}
@@ -357,9 +364,8 @@
                             {% if service_info.ipv4_direct %}
                                 {% set ipv4_port = config.stun_ports.get(service_name) %}
                                 {% if ipv4_port %}
-                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.domains.ipv4 }}:{{ ipv4_port }}', this)">
-                                    {{ config.domains.ipv4 }}:{{ ipv4_port }}
-                                </div>
+                                <input class="copy-field" type="text" readonly aria-label="IPv4 域名地址"
+                                       value="{{ config.domains.ipv4 }}:{{ ipv4_port }}" onclick="copyToClipboardWithToast(this)">
                                 {% endif %}
                             {% endif %}
                         {% endif %}
@@ -379,9 +385,8 @@
                                     {{ service_info.ipv6_scheme }}://[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}{{ path }}
                                 </a>
                             {% else %}
-                                <div class="copy-button" onclick="copyToClipboardWithToast('[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}', this)">
-                                    [{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}
-                                </div>
+                                <input class="copy-field" type="text" readonly aria-label="IPv6 直连地址"
+                                       value="[{{ config.ips['ipv6_' + service_info.ipv6_host] }}]:{{ service_info.original_port }}" onclick="copyToClipboardWithToast(this)">
                             {% endif %}
 
                             <!-- IPv6 域名访问 -->
@@ -391,9 +396,8 @@
                                     {{ service_info.ipv6_scheme }}://{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}{{ path }}
                                 </a>
                             {% else %}
-                                <div class="copy-button" onclick="copyToClipboardWithToast('{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}', this)">
-                                    {{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}
-                                </div>
+                                <input class="copy-field" type="text" readonly aria-label="IPv6 域名地址"
+                                       value="{{ config.domains['ipv6_' + service_info.ipv6_host] }}:{{ service_info.original_port }}" onclick="copyToClipboardWithToast(this)">
                             {% endif %}
                         </div>
                     {% endif %}
@@ -403,7 +407,7 @@
 
         <div style="margin-top: 30px; text-align: center; color: #666;">
             <p><em>最后更新: {{ timestamp }}</em></p>
-            <p><small>点击灰色按钮可复制地址到剪贴板</small></p>
+            <p><small>点击文本框可复制地址，也可选中文本手动复制</small></p>
         </div>
     </div>
 
@@ -413,9 +417,10 @@
     </div>
 
     <script>
-        function showToast(message) {
+        function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+            toast.classList.toggle('error', isError);
             toast.classList.add('show');
 
             setTimeout(() => {
@@ -423,57 +428,40 @@
             }, 2000);
         }
 
-        function copyToClipboardWithToast(text, element) {
-            navigator.clipboard.writeText(text).then(function() {
-                // 显示复制成功的视觉反馈
-                element.classList.add('copied');
-                const originalText = element.textContent;
-                element.textContent = '已复制!';
-
-                // 显示Toast提示
-                showToast(`已复制: ${text}`);
-
-                // 1秒后恢复原状态
-                setTimeout(function() {
-                    element.classList.remove('copied');
-                    element.textContent = originalText;
-                }, 1000);
-            }).catch(function(err) {
-                console.error('复制失败: ', err);
-                // 降级方案
-                fallbackCopyTextToClipboard(text, element);
-            });
+        async function copyToClipboardWithToast(element) {
+            const text = element.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showCopySuccess(text, element);
+                    return;
+                } catch (err) {
+                    console.error('复制失败: ', err);
+                }
+            }
+            fallbackCopyTextToClipboard(element);
         }
 
-        function copyToClipboard(text, element) {
-            copyToClipboardWithToast(text, element);
+        function showCopySuccess(text, element) {
+            element.classList.add('copied');
+            showToast(`已复制: ${text}`);
+            setTimeout(function() {
+                element.classList.remove('copied');
+            }, 1000);
         }
 
-        function fallbackCopyTextToClipboard(text, element) {
-            var textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
+        function fallbackCopyTextToClipboard(element) {
+            element.focus();
+            element.select();
             try {
-                var successful = document.execCommand('copy');
-                if (successful) {
-                    element.classList.add('copied');
-                    const originalText = element.textContent;
-                    element.textContent = '已复制!';
-                    showToast(`已复制: ${text}`);
-                    setTimeout(function() {
-                        element.classList.remove('copied');
-                        element.textContent = originalText;
-                    }, 1000);
+                if (document.execCommand('copy')) {
+                    showCopySuccess(element.value, element);
+                    return;
                 }
             } catch (err) {
                 console.error('降级复制也失败了: ', err);
-                showToast('复制失败，请手动复制');
             }
-
-            document.body.removeChild(textArea);
+            showToast('复制失败，请手动复制', true);
         }
 
         // 展开/收起服务类型
